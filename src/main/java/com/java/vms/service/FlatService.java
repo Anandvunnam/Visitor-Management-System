@@ -2,9 +2,13 @@ package com.java.vms.service;
 
 import com.java.vms.domain.Flat;
 import com.java.vms.model.FlatDTO;
+import com.java.vms.model.FlatStatus;
 import com.java.vms.repos.FlatRepository;
 import com.java.vms.util.NotFoundException;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +17,8 @@ import org.springframework.stereotype.Service;
 public class FlatService {
 
     private final FlatRepository flatRepository;
+
+    private final Logger LOGGER = LoggerFactory.getLogger(FlatService.class);
 
     public FlatService(final FlatRepository flatRepository) {
         this.flatRepository = flatRepository;
@@ -34,22 +40,21 @@ public class FlatService {
     public Long create(final FlatDTO flatDTO) {
         final Flat flat = new Flat();
         mapToEntity(flatDTO, flat);
+        flat.setFlatStatus(FlatStatus.AVAILABLE);
+        LOGGER.info("FLAT created with num: " + flatDTO.getFlatNum());
         return flatRepository.save(flat).getId();
     }
 
-    public void update(final Long id, final FlatDTO flatDTO) {
-        final Flat flat = flatRepository.findById(id)
-                .orElseThrow(NotFoundException::new);
+    public Flat update(final FlatDTO flatDTO) throws NotFoundException {
+        final Flat flat = flatRepository.findByFlatNum(flatDTO.getFlatNum())
+                .orElseThrow(() -> new NotFoundException("Flat not found for num: " + flatDTO.getFlatNum()));
         mapToEntity(flatDTO, flat);
         flatRepository.save(flat);
-    }
-
-    public void delete(final Long id) {
-        flatRepository.deleteById(id);
+        return flat;
     }
 
     private FlatDTO mapToDTO(final Flat flat, final FlatDTO flatDTO) {
-        flatDTO.setId(flat.getId());
+//        flatDTO.setId(flat.getId());
         flatDTO.setFlatNum(flat.getFlatNum());
         flatDTO.setFlatStatus(flat.getFlatStatus());
         return flatDTO;
@@ -57,7 +62,12 @@ public class FlatService {
 
     private Flat mapToEntity(final FlatDTO flatDTO, final Flat flat) {
         flat.setFlatNum(flatDTO.getFlatNum());
-        flat.setFlatStatus(flatDTO.getFlatStatus());
+        if(flatDTO.getFlatStatus() != null){
+            flat.setFlatStatus(flatDTO.getFlatStatus());
+        }
+        else{
+            flat.setFlatStatus(FlatStatus.AVAILABLE);
+        }
         return flat;
     }
 
@@ -65,4 +75,14 @@ public class FlatService {
         return flatRepository.existsByFlatNumIgnoreCase(flatNum);
     }
 
+    public FlatStatus changeFlatStatusToNotAvailable(String flatNum, boolean status) {
+        final Flat flat = flatRepository.findByFlatNum(flatNum)
+                .orElseThrow(() -> new NotFoundException("Flat not found for num: " + flatNum));
+        if(status)
+            flat.setFlatStatus(FlatStatus.AVAILABLE);
+        else
+            flat.setFlatStatus(FlatStatus.NOTAVAILABLE);
+        LOGGER.info("FLAT status changed for flat num: " + flatNum);
+        return flatRepository.save(flat).getFlatStatus();
+    }
 }

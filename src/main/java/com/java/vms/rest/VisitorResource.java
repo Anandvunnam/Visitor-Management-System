@@ -51,12 +51,12 @@ public class VisitorResource {
         visitorService.update(id, visitorDTO);
         return ResponseEntity.ok(id);
     }
-
-    @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteVisitor(@PathVariable(name = "id") final Long id) {
-        visitorService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
+//    Delete Method not required as this is not a restful project.
+//    @DeleteMapping("/{id}")
+//    @ApiResponse(responseCode = "204")
+//    public ResponseEntity<Void> deleteVisitor(@PathVariable(name = "id") final Long id) {
+//        visitorService.delete(id);
+//        return ResponseEntity.noContent().build();
+//    }
 
 }

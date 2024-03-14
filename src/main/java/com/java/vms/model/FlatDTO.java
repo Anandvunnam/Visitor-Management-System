@@ -9,14 +9,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FlatDTO {
-
-    private Long id;
-
     @NotNull
     @Size(max = 255)
     private String flatNum;
 
-    @NotNull
     private FlatStatus flatStatus;
-
 }

@@ -1,13 +1,16 @@
 package com.java.vms.model;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDTO {
 
     private Long id;
@@ -23,15 +26,27 @@ public class UserDTO {
     @NotNull
     private Long phone;
 
-    @NotNull
     private UserStatus userStatus;
 
-    @NotNull
     private Role role;
 
-    @NotNull
-    private Long address;
+    private String line1;
 
-    private Long flat;
+
+    private String line2;
+
+
+    private String city;
+
+
+    private String state;
+
+
+    private String country;
+
+
+    private Integer pincode;
+
+    private String flatNum;
 
 }

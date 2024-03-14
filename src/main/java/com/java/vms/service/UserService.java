@@ -4,11 +4,16 @@ import com.java.vms.domain.Address;
 import com.java.vms.domain.Flat;
 import com.java.vms.domain.User;
 import com.java.vms.model.UserDTO;
+import com.java.vms.model.UserStatus;
 import com.java.vms.repos.AddressRepository;
 import com.java.vms.repos.FlatRepository;
 import com.java.vms.repos.UserRepository;
 import com.java.vms.util.NotFoundException;
 import java.util.List;
+
+import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +24,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final FlatRepository flatRepository;
+
+    private Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     public UserService(final UserRepository userRepository,
             final AddressRepository addressRepository, final FlatRepository flatRepository) {
@@ -40,21 +47,33 @@ public class UserService {
                 .orElseThrow(NotFoundException::new);
     }
 
+    @Transactional
     public Long create(final UserDTO userDTO) {
         final User user = new User();
         mapToEntity(userDTO, user);
+        user.setUserStatus(UserStatus.ACTIVE);
+        LOGGER.info("New user created");
         return userRepository.save(user).getId();
     }
 
-    public void update(final Long id, final UserDTO userDTO) {
-        final User user = userRepository.findById(id)
-                .orElseThrow(NotFoundException::new);
+    public void update(final UserDTO userDTO) {
+        final User user = userRepository.findUserByEmail(userDTO.getEmail())
+                .orElseThrow(() -> new NotFoundException("User not found for email: " + userDTO.getEmail()));
         mapToEntity(userDTO, user);
+        LOGGER.info("User " + user.getEmail() + " details updated.");
         userRepository.save(user);
     }
 
-    public void delete(final Long id) {
-        userRepository.deleteById(id);
+    public void markUserStatus(final Long id) throws NotFoundException {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found for ID: " + id));
+        if(user.getUserStatus() == UserStatus.ACTIVE){
+            user.setUserStatus(UserStatus.INACTIVE);
+        }
+        else{
+            user.setUserStatus(UserStatus.ACTIVE);
+        }
+        userRepository.save(user);
+        LOGGER.info("User " + user.getName() + " status updated");
     }
 
     private UserDTO mapToDTO(final User user, final UserDTO userDTO) {
@@ -64,8 +83,14 @@ public class UserService {
         userDTO.setPhone(user.getPhone());
         userDTO.setUserStatus(user.getUserStatus());
         userDTO.setRole(user.getRole());
-        userDTO.setAddress(user.getAddress() == null ? null : user.getAddress().getId());
-        userDTO.setFlat(user.getFlat() == null ? null : user.getFlat().getId());
+        Address address = user.getAddress() == null ? null : user.getAddress();
+        userDTO.setLine1(address.getLine1());
+        userDTO.setLine2(address.getLine2());
+        userDTO.setCity(address.getCity());
+        userDTO.setState(address.getState());
+        userDTO.setCountry(address.getCountry());
+        userDTO.setPincode(address.getPincode());
+        userDTO.setFlatNum(user.getFlat() == null ? null : user.getFlat().getFlatNum());
         return userDTO;
     }
 
@@ -73,14 +98,27 @@ public class UserService {
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
         user.setPhone(userDTO.getPhone());
-        user.setUserStatus(userDTO.getUserStatus());
-        user.setRole(userDTO.getRole());
-        final Address address = userDTO.getAddress() == null ? null : addressRepository.findById(userDTO.getAddress())
-                .orElseThrow(() -> new NotFoundException("address not found"));
-        user.setAddress(address);
-        final Flat flat = userDTO.getFlat() == null ? null : flatRepository.findById(userDTO.getFlat())
-                .orElseThrow(() -> new NotFoundException("flat not found"));
-        user.setFlat(flat);
+//      No need to set user status
+        if(userDTO.getRole() != null) {
+            user.setRole(userDTO.getRole());
+        }
+        if(userDTO.getLine1() != null || userDTO.getLine2() != null ||
+            userDTO.getCity() != null || userDTO.getState() != null ||
+            userDTO.getCountry() != null || userDTO.getPincode() != null) {
+            Address address = Address.builder().line1(userDTO.getLine1())
+                    .line2(userDTO.getLine2())
+                    .city(userDTO.getCity())
+                    .state(userDTO.getState())
+                    .country(userDTO.getCountry())
+                    .pincode(userDTO.getPincode()).build();
+            addressRepository.save(address);
+            user.setAddress(address);
+        }
+        if(userDTO.getFlatNum() == null) {
+            final Flat flat = userDTO.getFlatNum() == null ? null : flatRepository.findByFlatNum(userDTO.getFlatNum())
+                    .orElseThrow(() -> new NotFoundException("flat not found"));
+            user.setFlat(flat);
+        }
         return user;
     }
 

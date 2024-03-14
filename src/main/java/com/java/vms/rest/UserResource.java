@@ -48,15 +48,16 @@ public class UserResource {
     @PutMapping("/{id}")
     public ResponseEntity<Long> updateUser(@PathVariable(name = "id") final Long id,
             @RequestBody @Valid final UserDTO userDTO) {
-        userService.update(id, userDTO);
+        userService.update(userDTO);
         return ResponseEntity.ok(id);
     }
 
-    @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteUser(@PathVariable(name = "id") final Long id) {
-        userService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
+//    Delete Method not required as this is not a restful project.
+//    @DeleteMapping("/{id}")
+//    @ApiResponse(responseCode = "204")
+//    public ResponseEntity<Void> deleteUser(@PathVariable(name = "id") final Long id) {
+//        userService.delete(id);
+//        return ResponseEntity.noContent().build();
+//    }
 
 }
