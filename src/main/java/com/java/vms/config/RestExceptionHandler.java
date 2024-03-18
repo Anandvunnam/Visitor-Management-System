@@ -5,6 +5,8 @@ import com.java.vms.model.FieldError;
 import com.java.vms.util.NotFoundException;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -25,6 +27,15 @@ public class RestExceptionHandler {
         errorResponse.setException(exception.getClass().getSimpleName());
         errorResponse.setMessage(exception.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(final BadRequestException exception) {
+        final ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setHttpStatus(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setException(exception.getClass().getSimpleName());
+        errorResponse.setMessage(exception.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

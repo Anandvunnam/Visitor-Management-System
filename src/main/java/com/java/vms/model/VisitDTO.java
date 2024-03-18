@@ -14,12 +14,14 @@ public class VisitDTO {
     private Long id;
 
     @NotNull
+    private Long visitor;
+
+    //@NotNull
     private VisitStatus visitStatus;
 
-    @NotNull
     private LocalDateTime inTime;
 
-    @NotNull
+    //@NotNull
     private LocalDateTime outTime;
 
     @NotNull
@@ -31,12 +33,15 @@ public class VisitDTO {
     private String purpose;
 
     @NotNull
-    private Long user;
+    private Integer numOfGuests;
 
     @NotNull
-    private Long flat;
+    private String userName;
 
     @NotNull
-    private Long visitor;
+    private Long userPhoneNumber;
+
+    @NotNull
+    private String flatNum;
 
 }

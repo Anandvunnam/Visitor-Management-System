@@ -36,10 +36,10 @@ public class Visit {
     @Enumerated(EnumType.STRING)
     private VisitStatus visitStatus;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime inTime;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime outTime;
 
     @Column(nullable = false)
@@ -47,6 +47,9 @@ public class Visit {
 
     @Column(nullable = false)
     private String purpose;
+
+    @Column(nullable = false)
+    private Integer numOfGuests;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -56,7 +59,7 @@ public class Visit {
     @JoinColumn(name = "flat_id", nullable = false)
     private Flat flat;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "visitor_id", nullable = false)
     private Visitor visitor;
 

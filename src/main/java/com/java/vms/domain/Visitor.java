@@ -34,9 +34,6 @@ public class Visitor {
     @Column(nullable = false, unique = true)
     private String phone;
 
-    @Column(nullable = false)
-    private String numOfGuests;
-
     @Column(nullable = false, unique = true)
     private String unqId;
 

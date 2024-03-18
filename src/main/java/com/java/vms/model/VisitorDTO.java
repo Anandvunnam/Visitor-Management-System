@@ -22,13 +22,22 @@ public class VisitorDTO {
 
     @NotNull
     @Size(max = 255)
-    private String numOfGuests;
-
-    @NotNull
-    @Size(max = 255)
     private String unqId;
 
     @NotNull
-    private Long address;
+    private String line1;
 
+    private String line2;
+
+    @NotNull
+    private String city;
+
+    @NotNull
+    private String state;
+
+    @NotNull
+    private String country;
+
+    @NotNull
+    private Integer pincode;
 }

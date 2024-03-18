@@ -5,6 +5,8 @@ import com.java.vms.service.VisitService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import java.util.List;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,14 +42,14 @@ public class VisitResource {
 
     @PostMapping
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createVisit(@RequestBody @Valid final VisitDTO visitDTO) {
+    public ResponseEntity<Long> createVisit(@RequestBody @Valid final VisitDTO visitDTO) throws BadRequestException {
         final Long createdId = visitService.create(visitDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Long> updateVisit(@PathVariable(name = "id") final Long id,
-            @RequestBody @Valid final VisitDTO visitDTO) {
+            @RequestBody @Valid final VisitDTO visitDTO) throws BadRequestException {
         visitService.update(id, visitDTO);
         return ResponseEntity.ok(id);
     }

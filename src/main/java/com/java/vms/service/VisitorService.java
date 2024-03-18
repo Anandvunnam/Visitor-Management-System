@@ -7,6 +7,10 @@ import com.java.vms.repos.AddressRepository;
 import com.java.vms.repos.VisitorRepository;
 import com.java.vms.util.NotFoundException;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +20,8 @@ public class VisitorService {
 
     private final VisitorRepository visitorRepository;
     private final AddressRepository addressRepository;
+
+    private final Logger LOGGER = LoggerFactory.getLogger(VisitorService.class);
 
     public VisitorService(final VisitorRepository visitorRepository,
             final AddressRepository addressRepository) {
@@ -38,7 +44,12 @@ public class VisitorService {
 
     public Long create(final VisitorDTO visitorDTO) {
         final Visitor visitor = new Visitor();
+        if(unqIdExists(visitorDTO.getUnqId())){
+            LOGGER.info("Visitor already exists with unq ID: " + visitorDTO.getUnqId());
+            return visitorRepository.findVisitorByUnqId(visitorDTO.getUnqId()).get().getId();
+        }
         mapToEntity(visitorDTO, visitor);
+        LOGGER.info("Visitor created with unq id: " + visitorDTO.getUnqId());
         return visitorRepository.save(visitor).getId();
     }
 
@@ -57,20 +68,34 @@ public class VisitorService {
         visitorDTO.setId(visitor.getId());
         visitorDTO.setName(visitor.getName());
         visitorDTO.setPhone(visitor.getPhone());
-        visitorDTO.setNumOfGuests(visitor.getNumOfGuests());
         visitorDTO.setUnqId(visitor.getUnqId());
-        visitorDTO.setAddress(visitor.getAddress() == null ? null : visitor.getAddress().getId());
+        Address address = visitor.getAddress() == null ? null : visitor.getAddress();
+        visitorDTO.setLine1(address.getLine1());
+        visitorDTO.setLine2(address.getLine2());
+        visitorDTO.setCity(address.getCity());
+        visitorDTO.setState(address.getState());
+        visitorDTO.setCountry(address.getCountry());
+        visitorDTO.setPincode(address.getPincode());
+        //visitorDTO.setAddress(visitor.getAddress() == null ? null : visitor.getAddress().getId());
         return visitorDTO;
     }
 
     private Visitor mapToEntity(final VisitorDTO visitorDTO, final Visitor visitor) {
         visitor.setName(visitorDTO.getName());
         visitor.setPhone(visitorDTO.getPhone());
-        visitor.setNumOfGuests(visitorDTO.getNumOfGuests());
         visitor.setUnqId(visitorDTO.getUnqId());
-        final Address address = visitorDTO.getAddress() == null ? null : addressRepository.findById(visitorDTO.getAddress())
-                .orElseThrow(() -> new NotFoundException("address not found"));
-        visitor.setAddress(address);
+        if(visitorDTO.getLine1() != null || visitorDTO.getLine2() != null ||
+                visitorDTO.getCity() != null || visitorDTO.getState() != null ||
+                visitorDTO.getCountry() != null || visitorDTO.getPincode() != null) {
+                final Address address = Address.builder().line1(visitorDTO.getLine1())
+                    .line2(visitorDTO.getLine2())
+                    .city(visitorDTO.getCity())
+                    .state(visitorDTO.getState())
+                    .country(visitorDTO.getCountry())
+                    .pincode(visitorDTO.getPincode()).build();
+            addressRepository.save(address);
+            visitor.setAddress(address);
+        }
         return visitor;
     }
 
