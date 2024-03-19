@@ -116,6 +116,9 @@ public class VisitService {
             LOGGER.info("Marked entry for visitor with id: " + visit.getVisitor().getId());
             visitRepository.save(visit);
         }
+        else if(visit.getVisitStatus() == VisitStatus.REJECTED){
+            LOGGER.warn("Visit request reject for id: " + visit.getId());
+        }
         else{
             throw new BadRequestException("Visit request not yet approved.");
         }
@@ -133,5 +136,29 @@ public class VisitService {
         else{
             throw new BadRequestException("Visitor entry not found.");
         }
+    }
+
+    public void approveVisitReq(Long visitId) throws BadRequestException {
+        final Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new BadRequestException("No visit request found for id: " + visitId));
+        if(visit.getVisitStatus() != VisitStatus.PENDING){
+            LOGGER.info("Visit req with id " + visit.getId() + " is not pending");
+            throw new BadRequestException("Visit req with id " + visit.getId() + " is not pending");
+        }
+        visit.setVisitStatus(VisitStatus.APPROVED);
+        LOGGER.info("Approved visit request with id: " + visit.getId());
+        visitRepository.save(visit);
+    }
+
+    public void rejectVisitReq(Long visitId) throws BadRequestException {
+        final Visit visit = visitRepository.findById(visitId)
+                .orElseThrow(() -> new BadRequestException("No visit request found for id: " + visitId));
+        if(visit.getVisitStatus() != VisitStatus.PENDING){
+            LOGGER.info("Visit req with id " + visit.getId() + " is not pending");
+            throw new BadRequestException("Visit req with id " + visit.getId() + " is not pending");
+        }
+        visit.setVisitStatus(VisitStatus.REJECTED);
+        LOGGER.info("Rejected visit request with id: " + visit.getId());
+        visitRepository.save(visit);
     }
 }
