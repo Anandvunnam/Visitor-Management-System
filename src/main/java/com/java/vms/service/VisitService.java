@@ -13,6 +13,7 @@ import com.java.vms.repos.VisitorRepository;
 import com.java.vms.util.NotFoundException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.coyote.BadRequestException;
@@ -160,5 +161,23 @@ public class VisitService {
         visit.setVisitStatus(VisitStatus.REJECTED);
         LOGGER.info("Rejected visit request with id: " + visit.getId());
         visitRepository.save(visit);
+    }
+
+    public List<VisitDTO> listAllVisitReqsByStatus(String status, String userName, Long userPhone) throws BadRequestException {
+        final User user = userRepository.findUserByNameAndPhone(userName, userPhone)
+                .orElseThrow(() -> new BadRequestException("User not found  with given details."));
+        VisitStatus vStatus = VisitStatus.APPROVED.name().toLowerCase().equals(status)? VisitStatus.APPROVED : VisitStatus.REJECTED;
+        List<Visit> visits = visitRepository.findVisitByVisitStatusAndUser(vStatus, user);
+        if (visits.isEmpty()){
+            LOGGER.info("No visit reqs found.");
+            throw new NotFoundException("No visit requests found with status: " + status);
+        }
+        List<VisitDTO> visitDTOs = new ArrayList<>();
+        VisitDTO visitDTO = null;
+        for(Visit visit: visits){
+            visitDTO = new VisitDTO();
+            visitDTOs.add(mapToDTO(visit, visitDTO));
+        }
+        return visitDTOs;
     }
 }
