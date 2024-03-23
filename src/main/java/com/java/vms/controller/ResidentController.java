@@ -37,6 +37,6 @@ public class ResidentController {
     public ResponseEntity<List<VisitDTO>> getAllVisitReqsByStatus(@RequestParam(name = "status") String status,
                                                                   @RequestParam(name = "name") String userName,
                                                                   @RequestParam(name = "phone") Long phone) throws BadRequestException{
-        return ResponseEntity.ok().body(visitService.listAllVisitReqsByStatus(status, userName, phone));
+        return ResponseEntity.ok().body(visitService.listAllVisitReqsByStatus(status, userName, phone, true));
     }
 }

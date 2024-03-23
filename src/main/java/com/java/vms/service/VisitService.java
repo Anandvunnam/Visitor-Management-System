@@ -12,6 +12,7 @@ import com.java.vms.repos.VisitRepository;
 import com.java.vms.repos.VisitorRepository;
 import com.java.vms.util.NotFoundException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class VisitService {
     private final FlatRepository flatRepository;
     private final VisitorRepository visitorRepository;
 
-    private final Logger LOGGER = LoggerFactory.getLogger(VisitService.class);
+    private Logger LOGGER = LoggerFactory.getLogger(VisitService.class);
 
     public VisitService(final VisitRepository visitRepository, final UserRepository userRepository,
             final FlatRepository flatRepository, final VisitorRepository visitorRepository) {
@@ -163,21 +164,29 @@ public class VisitService {
         visitRepository.save(visit);
     }
 
-    public List<VisitDTO> listAllVisitReqsByStatus(String status, String userName, Long userPhone) throws BadRequestException {
+    public List<VisitDTO> listAllVisitReqsByStatus(String status, String userName, Long userPhone, boolean isDurationEnabled) throws BadRequestException {
         final User user = userRepository.findUserByNameAndPhone(userName, userPhone)
                 .orElseThrow(() -> new BadRequestException("User not found  with given details."));
-        VisitStatus vStatus = VisitStatus.APPROVED.name().toLowerCase().equals(status)? VisitStatus.APPROVED : VisitStatus.REJECTED;
+        VisitStatus vStatus = VisitStatus.APPROVED.name().toLowerCase().equals(status.toLowerCase())? VisitStatus.APPROVED : VisitStatus.REJECTED;
         List<Visit> visits = visitRepository.findVisitByVisitStatusAndUser(vStatus, user);
         if (visits.isEmpty()){
-            LOGGER.info("No visit reqs found.");
             throw new NotFoundException("No visit requests found with status: " + status);
         }
         List<VisitDTO> visitDTOs = new ArrayList<>();
         VisitDTO visitDTO = null;
         for(Visit visit: visits){
+            if(isDurationEnabled){
+                Duration duration = Duration.between(LocalDateTime.now(), visit.getDateCreated()).abs();
+                LOGGER.error("DURATION: " + duration.toDays());
+                if(duration.toDays() > 30L){
+                    LOGGER.info("Ignored visit request with id: " + visit.getId());
+                    continue;
+                }
+            }
             visitDTO = new VisitDTO();
             visitDTOs.add(mapToDTO(visit, visitDTO));
         }
+        LOGGER.info("List of visits [" + visitDTOs.size() + "] found for user: " + userName + " with status: " + status);
         return visitDTOs;
     }
 }
