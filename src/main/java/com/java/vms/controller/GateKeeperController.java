@@ -50,4 +50,10 @@ public class GateKeeperController {
         visitService.markVisitorExit(visitId);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/checkPreApprovedVisitReqs")
+    @ApiResponse(responseCode = "200")
+    public ResponseEntity<Long> checkPreApprovedVisitReqs(@RequestParam @Valid final Long visitorId, @RequestParam @Valid final Long userId) throws BadRequestException {
+        return ResponseEntity.ok(visitService.anyPreApprovedExists(visitorId,userId));
+    }
 }

@@ -61,5 +61,4 @@ public class Visit {
     @LastModifiedDate
     @Column(nullable = false)
     private OffsetDateTime lastUpdated;
-
 }

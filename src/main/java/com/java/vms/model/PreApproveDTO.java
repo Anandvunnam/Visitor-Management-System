@@ -2,18 +2,12 @@ package com.java.vms.model;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
-
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class VisitorDTO {
-
-    private Long id;
-
+public class PreApproveDTO {
     @NotNull
     @Size(max = 255)
     private String name;
@@ -42,4 +36,15 @@ public class VisitorDTO {
 
     @NotNull
     private Integer pincode;
+
+    @NotNull
+    @Size(max = 255)
+    private String visitorImgUrl;
+
+    @NotNull
+    @Size(max = 255)
+    private String purpose;
+
+    @NotNull
+    private Integer numOfGuests;
 }

@@ -2,6 +2,7 @@ package com.java.vms.service;
 
 import com.java.vms.domain.Address;
 import com.java.vms.domain.Visitor;
+import com.java.vms.model.PreApproveDTO;
 import com.java.vms.model.VisitorDTO;
 import com.java.vms.repos.AddressRepository;
 import com.java.vms.repos.VisitorRepository;
@@ -53,6 +54,12 @@ public class VisitorService {
         return visitorRepository.save(visitor).getId();
     }
 
+    public Long create(final PreApproveDTO preApproveDTO) {
+        VisitorDTO visitorDTO = new VisitorDTO();
+        visitorDTO = mapPreApprovedDTOToVisitorDTO(preApproveDTO, visitorDTO);
+        return create(visitorDTO);
+    }
+
     public void update(final Long id, final VisitorDTO visitorDTO) {
         final Visitor visitor = visitorRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
@@ -97,6 +104,19 @@ public class VisitorService {
             visitor.setAddress(address);
         }
         return visitor;
+    }
+
+    private VisitorDTO mapPreApprovedDTOToVisitorDTO(final PreApproveDTO preApproveDTO, VisitorDTO visitorDTO){
+        visitorDTO.setName(preApproveDTO.getName());
+        visitorDTO.setPhone(preApproveDTO.getPhone());
+        visitorDTO.setUnqId(preApproveDTO.getUnqId());
+        visitorDTO.setLine1(preApproveDTO.getLine1());
+        visitorDTO.setLine2(preApproveDTO.getLine2());
+        visitorDTO.setCity(preApproveDTO.getCity());
+        visitorDTO.setState(preApproveDTO.getState());
+        visitorDTO.setCountry(preApproveDTO.getCountry());
+        visitorDTO.setPincode(preApproveDTO.getPincode());
+        return visitorDTO;
     }
 
     public boolean phoneExists(final String phone) {

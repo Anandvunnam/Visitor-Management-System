@@ -4,8 +4,10 @@ import com.java.vms.domain.Flat;
 import com.java.vms.domain.User;
 import com.java.vms.domain.Visit;
 import com.java.vms.domain.Visitor;
+import com.java.vms.model.PreApproveDTO;
 import com.java.vms.model.VisitDTO;
 import com.java.vms.model.VisitStatus;
+import com.java.vms.model.VisitorDTO;
 import com.java.vms.repos.FlatRepository;
 import com.java.vms.repos.UserRepository;
 import com.java.vms.repos.VisitRepository;
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +62,14 @@ public class VisitService {
         final Visit visit = new Visit();
         mapToEntity(visitDTO, visit);
         LOGGER.info("Visit created for visitor with Id: " + visitDTO.getVisitor());
+        return visitRepository.save(visit).getId();
+    }
+
+    @Transactional
+    public Long create(final PreApproveDTO preApproveDTO, final Long visitorId, final Long userId) throws BadRequestException {
+        Visit visit = new Visit();
+        visit = mapPreApprovedDTOToEntity(preApproveDTO, visit, visitorId, userId);
+        LOGGER.info("Visit created for visitor with Id: " + visitorId);
         return visitRepository.save(visit).getId();
     }
 
@@ -108,6 +119,33 @@ public class VisitService {
         visit.setUser(user);
         visit.setVisitor(visitor);
         return visit;
+    }
+
+    public Visit mapPreApprovedDTOToEntity(final PreApproveDTO preApproveDTO, Visit visit, Long visitorID, Long userId){
+        final Visitor visitor = visitorRepository.findById(visitorID)
+                .orElseThrow(() -> new NotFoundException("visitor not found for id: " + visitorID));
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("user not found with id: " + userId));
+        visit.setVisitStatus(VisitStatus.APPROVED);
+        visit.setVisitorImgUrl(preApproveDTO.getVisitorImgUrl());
+        visit.setPurpose(preApproveDTO.getPurpose());
+        visit.setNumOfGuests(preApproveDTO.getNumOfGuests());
+        visit.setVisitor(visitor);
+        visit.setUser(user);
+        visit.setFlat(user.getFlat());
+        return visit;
+    }
+
+    public Long anyPreApprovedExists(Long visitorId, Long userId) throws BadRequestException {
+        final Visitor visitor = visitorRepository.findById(visitorId).orElse(null);
+        final User user = userRepository.findById(userId).orElse(null);
+        if(visitor == null || user == null){
+            throw new BadRequestException("Invalid visitorId or userID");
+        }
+        Visit preApprovedVisit = visitRepository.isPreApprovedExistsForVisitor(VisitStatus.APPROVED, visitor, user)
+                .orElseThrow(() -> new NotFoundException("Pre-approved visit request not found for visitor with id: " + visitorId));
+
+        return preApprovedVisit.getId();
     }
 
     public void markVisitorEntry(Long visitId) throws BadRequestException {
@@ -177,7 +215,6 @@ public class VisitService {
         for(Visit visit: visits){
             if(isDurationEnabled){
                 Duration duration = Duration.between(LocalDateTime.now(), visit.getDateCreated()).abs();
-                LOGGER.error("DURATION: " + duration.toDays());
                 if(duration.toDays() > 30L){
                     LOGGER.info("Ignored visit request with id: " + visit.getId());
                     continue;
