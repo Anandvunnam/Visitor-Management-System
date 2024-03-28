@@ -48,5 +48,4 @@ public class UserDTO {
     private Integer pincode;
 
     private String flatNum;
-
 }

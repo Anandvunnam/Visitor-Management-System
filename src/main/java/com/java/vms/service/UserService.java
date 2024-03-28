@@ -3,19 +3,30 @@ package com.java.vms.service;
 import com.java.vms.domain.Address;
 import com.java.vms.domain.Flat;
 import com.java.vms.domain.User;
+import com.java.vms.model.Role;
 import com.java.vms.model.UserDTO;
 import com.java.vms.model.UserStatus;
 import com.java.vms.repos.AddressRepository;
 import com.java.vms.repos.FlatRepository;
 import com.java.vms.repos.UserRepository;
 import com.java.vms.util.NotFoundException;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Service
@@ -48,12 +59,13 @@ public class UserService {
     }
 
     @Transactional
-    public Long create(final UserDTO userDTO) {
+    public Long create(final @Valid UserDTO userDTO) {
         final User user = new User();
         mapToEntity(userDTO, user);
         user.setUserStatus(UserStatus.ACTIVE);
-        LOGGER.info("New user created");
-        return userRepository.save(user).getId();
+        Long createdId = userRepository.save(user).getId();
+        LOGGER.info("New user created with id: " + createdId);
+        return createdId;
     }
 
     public void update(final UserDTO userDTO) {
@@ -73,7 +85,7 @@ public class UserService {
             user.setUserStatus(UserStatus.ACTIVE);
         }
         userRepository.save(user);
-        LOGGER.info("User " + user.getName() + " status updated");
+        LOGGER.info("User status updated for id: " + user.getId());
     }
 
     private UserDTO mapToDTO(final User user, final UserDTO userDTO) {
@@ -114,9 +126,9 @@ public class UserService {
             addressRepository.save(address);
             user.setAddress(address);
         }
-        if(userDTO.getFlatNum() == null) {
+        if(userDTO.getFlatNum() != null) {
             final Flat flat = userDTO.getFlatNum() == null ? null : flatRepository.findByFlatNum(userDTO.getFlatNum())
-                    .orElseThrow(() -> new NotFoundException("flat not found"));
+                    .orElseThrow(() -> new NotFoundException("flat not found for user: " + userDTO.getName()));
             user.setFlat(flat);
         }
         return user;
@@ -134,4 +146,48 @@ public class UserService {
         return userRepository.existsByPhone(phone);
     }
 
+    public List<String> createUsersFromFile(MultipartFile file){
+        LOGGER.info("Uploaded File: " + file.getName());
+        // TODO: 1. Need to check file name
+        List<String> response = new ArrayList<>();
+        try{
+            BufferedReader fileReader = new BufferedReader(new InputStreamReader(file.getInputStream()));
+            CSVParser csvParser = new CSVParser(fileReader, CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
+            Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+            int counter = 0;
+            for(CSVRecord record: csvRecords){
+                counter++;
+                if(record.get("name").isEmpty() || record.get("email").isEmpty()
+                    || record.get("phone").isEmpty() || record.get("role").isEmpty()
+                    || !record.get("phone").matches("^\\d.+$")
+                    || !record.get("role").matches("^(ADMIN|GATEKEEPER|RESIDENT)$")){
+
+                    response.add("Unable to create user: " + counter + " [Details provided are invalid]");
+                    continue;
+                }
+                UserDTO userDTO = new UserDTO();
+                try {
+                    userDTO.setName(record.get("name"));
+                    userDTO.setEmail(record.get("email"));
+                    userDTO.setPhone(Long.valueOf(record.get("phone")));
+                    userDTO.setRole(Role.valueOf(record.get("role")));
+                    userDTO.setLine1(record.get("line1"));
+                    userDTO.setLine2(record.get("line2"));
+                    userDTO.setCity(record.get("city"));
+                    userDTO.setState(record.get("state"));
+                    userDTO.setCountry(record.get("country"));
+                    userDTO.setPincode(Integer.valueOf(record.get("pincode")));
+                    userDTO.setFlatNum(record.get("flatnum").isEmpty()?null:record.get("flatnum"));
+                    long id = create(userDTO);
+                    response.add("Created user " + userDTO.getName() + " with id: " + id);
+                }
+                catch (Exception e){
+                    response.add("Unable to create user " + userDTO.getName() + " with err msg: " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return response;
+    }
 }

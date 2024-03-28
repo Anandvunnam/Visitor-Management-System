@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.net.http.HttpResponse;
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -55,6 +57,11 @@ public class AdminController {
         FlatStatus flatStatus = flatService.changeFlatStatusToNotAvailable(flatNum, status);
         // TODO : 1. Need to change way of handling when only one rq param is received.
         return ResponseEntity.ok(flatStatus);
+    }
+
+    @PostMapping("/uploadUserData")
+    public ResponseEntity<List<String>> uploadUserData(@RequestParam MultipartFile file){
+        return ResponseEntity.ok(userService.createUsersFromFile(file));
     }
 
 }
