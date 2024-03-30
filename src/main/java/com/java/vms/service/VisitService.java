@@ -14,10 +14,14 @@ import com.java.vms.repos.VisitRepository;
 import com.java.vms.repos.VisitorRepository;
 import com.java.vms.util.NotFoundException;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.transaction.Transactional;
 import org.apache.coyote.BadRequestException;
@@ -25,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Service
@@ -226,4 +231,18 @@ public class VisitService {
         LOGGER.info("List of visits [" + visitDTOs.size() + "] found for user: " + userName + " with status: " + status);
         return visitDTOs;
     }
+
+    public String uploadVisitorImage(MultipartFile file){
+        String fileName = UUID.randomUUID()  + "_" + file.getOriginalFilename();
+        String uploadPath = "F:/ANAND/Misc/" + fileName;
+        String response = "/content/" + fileName;
+        try{
+            file.transferTo(new File(uploadPath));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        LOGGER.info("visitor image uploaded successfully");
+        return response;
+    }
+
 }

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/gt")
@@ -56,4 +57,11 @@ public class GateKeeperController {
     public ResponseEntity<Long> checkPreApprovedVisitReqs(@RequestParam @Valid final Long visitorId, @RequestParam @Valid final Long userId) throws BadRequestException {
         return ResponseEntity.ok(visitService.anyPreApprovedExists(visitorId,userId));
     }
+
+    @PostMapping("/image-upload")
+    @ApiResponse(responseCode = "201")
+    public ResponseEntity<String> uploadImage(@RequestParam("file")MultipartFile file){
+        return ResponseEntity.ok(visitService.uploadVisitorImage(file));
+    }
+
 }
