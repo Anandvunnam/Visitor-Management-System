@@ -3,17 +3,25 @@ package com.java.vms.controller;
 import com.java.vms.model.FlatDTO;
 import com.java.vms.model.FlatStatus;
 import com.java.vms.model.UserDTO;
+import com.java.vms.model.VisitDTO;
 import com.java.vms.service.FlatService;
 import com.java.vms.service.UserService;
+import com.java.vms.service.VisitService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.http.HttpResponse;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -22,6 +30,9 @@ public class AdminController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private VisitService visitService;
 
     @Autowired
     private FlatService flatService;
@@ -62,6 +73,27 @@ public class AdminController {
     @PostMapping("/uploadUserData")
     public ResponseEntity<List<String>> uploadUserData(@RequestParam MultipartFile file){
         return ResponseEntity.ok(userService.createUsersFromFile(file));
+    }
+
+    @GetMapping("/generate-visit-report")
+    public ResponseEntity<byte[]> generateVisitReport(@RequestParam String fromDate,
+                                                      @RequestParam String toDate) throws BadRequestException {
+        LocalDateTime lclFromDate = null;
+        LocalDateTime lclToDate = null;
+
+        try {
+            lclFromDate = LocalDate.parse(fromDate).atStartOfDay();
+            lclToDate = LocalDate.parse(toDate).atStartOfDay();
+        }
+        catch (DateTimeParseException e){
+            throw new BadRequestException("Invalid to/from dates");
+        }
+        byte[] response = visitService.getAllVisitReqsBetweenDates(lclFromDate, lclToDate);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("text/csv"));
+        headers.setContentDispositionFormData("filename","VisitReport_" + fromDate +"_" + toDate + ".csv");
+
+        return new ResponseEntity<>(response, headers, HttpStatus.OK);
     }
 
 }

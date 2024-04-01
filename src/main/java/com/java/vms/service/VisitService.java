@@ -7,23 +7,25 @@ import com.java.vms.domain.Visitor;
 import com.java.vms.model.PreApproveDTO;
 import com.java.vms.model.VisitDTO;
 import com.java.vms.model.VisitStatus;
-import com.java.vms.model.VisitorDTO;
 import com.java.vms.repos.FlatRepository;
 import com.java.vms.repos.UserRepository;
 import com.java.vms.repos.VisitRepository;
 import com.java.vms.repos.VisitorRepository;
 import com.java.vms.util.NotFoundException;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import jakarta.transaction.Transactional;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -242,6 +244,44 @@ public class VisitService {
             throw new RuntimeException(e);
         }
         LOGGER.info("visitor image uploaded successfully");
+        return response;
+    }
+
+    public byte[] getAllVisitReqsBetweenDates(LocalDateTime fromDate, LocalDateTime toDate) throws BadRequestException {
+        if(fromDate.isAfter(toDate)){
+            LOGGER.info("Invalid from and to dates: [" + fromDate.toLocalDate() + ", " + toDate.toLocalDate() + "]");
+            throw new BadRequestException("Invalid from and to dates.");
+        }
+        List<Visit> visits = visitRepository.findVisitsBetweenDates(OffsetDateTime.of(fromDate, ZoneOffset.UTC),
+                        OffsetDateTime.of(toDate, ZoneOffset.UTC)).get();
+        if(visits.size() == 0){
+            throw new NotFoundException("No visit requests found between " +
+                    fromDate.toLocalDate() + " and " + toDate.toLocalDate());
+        }
+        List<VisitDTO> visitDTOS = new ArrayList<>();
+        byte[] response = null;
+        try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8),
+                CSVFormat.DEFAULT.withHeader("Visitor", "VisitStatus", "In Time",
+                "Out Time", "VisitorImgUrl", "Purpose", "Num of Guests", "User Name", "User Phone", "Flat Num"))){
+
+            for(Visit visit: visits){
+                VisitDTO visitDTO = new VisitDTO();
+                visitDTO = mapToDTO(visit,visitDTO);
+                visitDTOS.add(visitDTO);
+                printer.printRecord(visitDTO.getVisitor(), visitDTO.getVisitStatus(),
+                        visitDTO.getInTime(), visitDTO.getOutTime(), visitDTO.getVisitorImgUrl(),
+                        visitDTO.getPurpose(), visitDTO.getNumOfGuests(), visitDTO.getUserName(),
+                        visitDTO.getUserPhoneNumber(), visitDTO.getFlatNum());
+
+            }
+
+            printer.flush();
+            response = byteArrayOutputStream.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        LOGGER.info("file: VisitReport_" + fromDate.toLocalDate() + "_" + toDate.toLocalDate() + ".csv generated successfully.");
         return response;
     }
 
