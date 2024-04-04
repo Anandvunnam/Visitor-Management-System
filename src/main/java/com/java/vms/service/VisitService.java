@@ -1,5 +1,6 @@
 package com.java.vms.service;
 
+import com.java.vms.config.ExpireVisitRequest;
 import com.java.vms.domain.Flat;
 import com.java.vms.domain.User;
 import com.java.vms.domain.Visit;
@@ -65,11 +66,14 @@ public class VisitService {
                 .orElseThrow(NotFoundException::new);
     }
 
+    @ExpireVisitRequest
+    @Transactional
     public Long create(final VisitDTO visitDTO) throws BadRequestException {
-        final Visit visit = new Visit();
+        Visit visit = new Visit();
         mapToEntity(visitDTO, visit);
         LOGGER.info("Visit created for visitor with Id: " + visitDTO.getVisitor());
-        return visitRepository.save(visit).getId();
+        Long visitId = visitRepository.save(visit).getId();
+        return visitId;
     }
 
     @Transactional
@@ -281,7 +285,7 @@ public class VisitService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        LOGGER.info("file: VisitReport_" + fromDate.toLocalDate() + "_" + toDate.toLocalDate() + ".csv generated successfully.");
+        LOGGER.info("File: VisitReport_" + fromDate.toLocalDate() + "_" + toDate.toLocalDate() + ".csv generated successfully.");
         return response;
     }
 
