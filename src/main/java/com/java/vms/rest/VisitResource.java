@@ -32,7 +32,7 @@ public class VisitResource {
 
     @GetMapping
     public ResponseEntity<List<VisitDTO>> getAllVisits() {
-        return ResponseEntity.ok(visitService.findAll());
+        return ResponseEntity.ok(visitService.findAll(null));
     }
 
     @GetMapping("/{id}")

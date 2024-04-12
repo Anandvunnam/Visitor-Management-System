@@ -30,6 +30,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,8 +54,11 @@ public class VisitService {
         this.visitorRepository = visitorRepository;
     }
 
-    public List<VisitDTO> findAll() {
-        final List<Visit> visits = visitRepository.findAll(Sort.by("id"));
+    public List<VisitDTO> findAll(Pageable pageable) {
+        if(pageable == null){
+            return null;
+        }
+        final List<Visit> visits = visitRepository.findAll(pageable).stream().toList();
         return visits.stream()
                 .map(visit -> mapToDTO(visit, new VisitDTO()))
                 .toList();

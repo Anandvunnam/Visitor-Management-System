@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -94,6 +95,14 @@ public class AdminController {
         headers.setContentDispositionFormData("filename","VisitReport_" + fromDate +"_" + toDate + ".csv");
 
         return new ResponseEntity<>(response, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/listAllVisits")
+    @ApiResponse(responseCode = "200")
+    public ResponseEntity<List<VisitDTO>> getAllVisitReqs(@RequestParam(name = "pgSize") Integer pageSize,
+                                                          @RequestParam(name = "pgNum") Integer pageNumber){
+        Pageable pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
+        return ResponseEntity.ok(visitService.findAll(pageable));
     }
 
 }

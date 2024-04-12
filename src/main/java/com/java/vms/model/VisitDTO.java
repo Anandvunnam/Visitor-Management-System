@@ -1,5 +1,6 @@
 package com.java.vms.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Setter
 public class VisitDTO {
 
+    @JsonIgnore
     private Long id;
 
     @NotNull
