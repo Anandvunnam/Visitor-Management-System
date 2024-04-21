@@ -1,6 +1,5 @@
 package com.java.vms;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.java.vms.domain.Address;
 import com.java.vms.domain.Flat;
@@ -15,7 +14,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -61,6 +59,7 @@ public class AdminApiTest {
     @AfterEach
     public void tearDown() throws Exception {
         userRepository.deleteAll();
+        flatRepository.deleteAll();
     }
 
     @Test
@@ -118,6 +117,5 @@ public class AdminApiTest {
                 .andDo(print()).andExpect(status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString().replace("\"","")).isEqualTo(FlatStatus.AVAILABLE.toString());
     }
-
 
 }
