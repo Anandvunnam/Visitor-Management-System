@@ -1,7 +1,6 @@
-# Vms
+# Visitor Management System - VMS
 
-This app was created with Bootify.io - tips on working with the code [can be found here](https://bootify.io/next-steps/).
-Feel free to contact us for further questions.
+Welcome to the Visitor Management System project! This project is a robust solution built using Java, Spring Boot, Hibernate, MySQL, and Redis. It offers a comprehensive platform for managing visitors efficiently and securely. With Spring Boot powering the backend, RESTful APIs are easily implemented to facilitate seamless communication between components. Hibernate ensures smooth interaction with the MySQL database, providing reliable data storage and retrieval. Additionally, Redis is utilized for caching purposes, enhancing performance and scalability. Whether you're tracking visitor records, managing access permissions, or ensuring security protocols, this project offers a reliable and adaptable solution.
 
 ## Development
 
