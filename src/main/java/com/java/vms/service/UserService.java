@@ -14,9 +14,11 @@ import com.java.vms.util.NotFoundException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.java.vms.util.RedisCacheUtil;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.apache.commons.csv.CSVFormat;
@@ -24,6 +26,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,7 +39,13 @@ public class UserService {
     private final AddressRepository addressRepository;
     private final FlatRepository flatRepository;
 
-    private Logger LOGGER = LoggerFactory.getLogger(UserService.class);
+    @Autowired
+    //private RedisTemplate<String, Object> template;
+    private RedisCacheUtil redisCacheUtil;
+
+    private final String USER_REDIS_KEY = "USR_";
+
+    private final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     public UserService(final UserRepository userRepository,
             final AddressRepository addressRepository, final FlatRepository flatRepository) {
@@ -59,25 +68,37 @@ public class UserService {
     }
 
     @Transactional
-    public Long create(final @Valid UserDTO userDTO) {
+    public Long create(final @Valid UserDTO userDTO) throws SQLIntegrityConstraintViolationException {
+        if(emailExists(userDTO.getEmail()) || phoneExists(userDTO.getPhone())){
+            throw new SQLIntegrityConstraintViolationException("Email/Phone already exists");
+        }
         final User user = new User();
         mapToEntity(userDTO, user);
         user.setUserStatus(UserStatus.ACTIVE);
         Long createdId = userRepository.save(user).getId();
+        //Redis Caching USER*
+        redisCacheUtil.setValueInRedisWithDefaultTTL(USER_REDIS_KEY + createdId, user);
         LOGGER.info("New user created with id: " + createdId);
         return createdId;
     }
 
+    @Transactional
     public void update(final UserDTO userDTO) {
         final User user = userRepository.findUserByEmail(userDTO.getEmail())
                 .orElseThrow(() -> new NotFoundException("User not found for email: " + userDTO.getEmail()));
         mapToEntity(userDTO, user);
         LOGGER.info("User " + user.getEmail() + " details updated.");
+        // Redis Caching USR_4
+        redisCacheUtil.setValueInRedisWithDefaultTTL(USER_REDIS_KEY + user.getId(), user);
         userRepository.save(user);
     }
 
     public void markUserStatus(final Long id) throws NotFoundException {
-        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found for ID: " + id));
+        //Redis Caching USER_3
+        User user = (User) redisCacheUtil.getValueFromRedisCache(USER_REDIS_KEY + id);
+        if(user == null){
+            user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found for ID: " + id));
+        }
         if(user.getUserStatus() == UserStatus.ACTIVE){
             user.setUserStatus(UserStatus.INACTIVE);
         }
@@ -85,6 +106,7 @@ public class UserService {
             user.setUserStatus(UserStatus.ACTIVE);
         }
         userRepository.save(user);
+        redisCacheUtil.setValueInRedisWithDefaultTTL(USER_REDIS_KEY + id, user);
         LOGGER.info("User status updated for id: " + user.getId());
     }
 
@@ -106,7 +128,7 @@ public class UserService {
         return userDTO;
     }
 
-    private User mapToEntity(final UserDTO userDTO, final User user) {
+    private void mapToEntity(final UserDTO userDTO, final User user) {
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
         user.setPhone(userDTO.getPhone());
@@ -127,28 +149,30 @@ public class UserService {
             user.setAddress(address);
         }
         if(userDTO.getFlatNum() != null) {
-            final Flat flat = userDTO.getFlatNum() == null ? null : flatRepository.findByFlatNum(userDTO.getFlatNum())
-                    .orElseThrow(() -> new NotFoundException("flat not found for user: " + userDTO.getName()));
+            Flat flat = (Flat) redisCacheUtil.getValueFromRedisCache(userDTO.getFlatNum());
+            if(flat == null){
+                flat = userDTO.getFlatNum() == null ? null : flatRepository.findByFlatNum(userDTO.getFlatNum())
+                        .orElseThrow(() -> new NotFoundException("flat not found for user: " + userDTO.getName()));
+            }
             user.setFlat(flat);
+            //TODO: Set flat status to NOT-AVAILABLE as it's assigned to a resident
         }
-        return user;
     }
 
     public boolean nameExists(final String name) {
         return userRepository.existsByNameIgnoreCase(name);
     }
 
-    public boolean emailExists(final String email) {
+    private boolean emailExists(final String email) {
         return userRepository.existsByEmailIgnoreCase(email);
     }
 
-    public boolean phoneExists(final Long phone) {
+    private boolean phoneExists(final Long phone) {
         return userRepository.existsByPhone(phone);
     }
 
     public List<String> createUsersFromFile(MultipartFile file){
-        LOGGER.info("Uploaded File: " + file.getName());
-        // TODO: 1. Need to check file name
+        LOGGER.info("Uploaded File: " + file.getOriginalFilename());
         List<String> response = new ArrayList<>();
         try{
             BufferedReader fileReader = new BufferedReader(new InputStreamReader(file.getInputStream()));

@@ -5,6 +5,8 @@ import com.java.vms.model.FlatStatus;
 import com.java.vms.service.FlatService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,7 +42,7 @@ public class FlatResource {
 
     @PostMapping
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createFlat(@RequestBody @Valid final FlatDTO flatDTO) {
+    public ResponseEntity<Long> createFlat(@RequestBody @Valid final FlatDTO flatDTO) throws SQLIntegrityConstraintViolationException {
         flatDTO.setFlatStatus(flatDTO.getFlatStatus() != null? flatDTO.getFlatStatus() :FlatStatus.AVAILABLE);
         final Long createdId = flatService.create(flatDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);

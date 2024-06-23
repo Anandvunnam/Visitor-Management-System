@@ -32,21 +32,33 @@ public class ExpireVisitRequestAspect {
     public void handleExpiringVisitRequest(ProceedingJoinPoint joinPoint) throws Throwable {
         //Before: No action before advice
         //actual
-        taskExecutor.execute(() -> {
-            Long visitId = null;
-            try {
-                visitId = (Long) joinPoint.proceed();
+        Long visitId;
+        try {
+            visitId = (Long) joinPoint.proceed();
+            Visit visit = visitRepository.findById(visitId).orElse(null);
+            if (visit != null && visit.getVisitStatus() == VisitStatus.PREAPPROVED) {
+                LOGGER.info("Visit status is PRE-APPROVED for visit id: " + visitId + ", skipping expiration.");
+                return;
+            }
+            else{
                 LOGGER.info("Visit Request with id: " + visitId + " will be expired in 10 mins.");
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+        taskExecutor.execute(() -> {
+            try {
                 TimeUnit.MINUTES.sleep(10);
             } catch (Throwable e) {
+                Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
             }
             //after
-            Visit visit = visitRepository.findById(visitId).orElse(null);
-            if(visit.getVisitStatus() == VisitStatus.PENDING){
-                visit.setVisitStatus(VisitStatus.EXPIRED);
+            Visit delayedVisit = visitRepository.findById(visitId).orElse(null);
+            if(delayedVisit.getVisitStatus() == VisitStatus.PENDING){
+                delayedVisit.setVisitStatus(VisitStatus.EXPIRED);
                 LOGGER.info("Visit status EXPIRED for visit id: " + visitId);
-                visitRepository.save(visit);
+                visitRepository.save(delayedVisit);
             }
             else{
                 LOGGER.info("Visit status is not PENDING for visit id: " + visitId);

@@ -1,5 +1,6 @@
 package com.java.vms.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.java.vms.model.FlatStatus;
 import jakarta.persistence.*;
 
@@ -34,6 +35,7 @@ public class Flat {
     private FlatStatus flatStatus;
 
     @OneToMany(mappedBy = "flat", fetch = FetchType.LAZY)
+    @JsonBackReference
     private Set<User> users;
 
     @CreatedDate

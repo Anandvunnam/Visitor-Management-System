@@ -7,6 +7,7 @@ public enum VisitStatus {
     PENDING,
     REJECTED,
     EXPIRED,
-    COMPLETED
+    COMPLETED,
+    PREAPPROVED
 
 }

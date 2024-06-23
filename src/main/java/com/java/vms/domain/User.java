@@ -60,7 +60,7 @@ public class User {
     private Address address;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "flat_id")
+    @JoinColumn(name = "flat_id")//Owning Side
     private Flat flat;
 
     @CreatedDate

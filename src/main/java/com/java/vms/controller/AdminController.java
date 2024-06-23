@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -40,7 +41,7 @@ public class AdminController {
 
     @PostMapping("/user")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createUser(@RequestBody @Valid final UserDTO userDTO) {
+    public ResponseEntity<Long> createUser(@RequestBody @Valid final UserDTO userDTO) throws SQLIntegrityConstraintViolationException {
         final Long createdId = userService.create(userDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
@@ -58,7 +59,7 @@ public class AdminController {
     }
     @PostMapping("/flat")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createFlat(@RequestBody @Valid final FlatDTO flatDTO) {
+    public ResponseEntity<Long> createFlat(@RequestBody @Valid final FlatDTO flatDTO) throws SQLIntegrityConstraintViolationException {
         final Long createdId = flatService.create(flatDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }

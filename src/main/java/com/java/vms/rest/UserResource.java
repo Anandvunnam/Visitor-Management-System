@@ -4,6 +4,8 @@ import com.java.vms.model.UserDTO;
 import com.java.vms.service.UserService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,7 +42,7 @@ public class UserResource {
 
     @PostMapping
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createUser(@RequestBody @Valid final UserDTO userDTO) {
+    public ResponseEntity<Long> createUser(@RequestBody @Valid final UserDTO userDTO) throws SQLIntegrityConstraintViolationException {
         final Long createdId = userService.create(userDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }

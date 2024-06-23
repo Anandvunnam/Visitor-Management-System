@@ -9,6 +9,7 @@ import com.java.vms.repos.VisitorRepository;
 import com.java.vms.util.NotFoundException;
 import java.util.List;
 
+import com.java.vms.util.RedisCacheUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,10 @@ public class VisitorService {
 
     private final VisitorRepository visitorRepository;
     private final AddressRepository addressRepository;
-
     private final Logger LOGGER = LoggerFactory.getLogger(VisitorService.class);
+    private final String VISITOR_REDIS_KEY = "VISITOR_";
+    @Autowired
+    private RedisCacheUtil redisCacheUtil;
 
     public VisitorService(final VisitorRepository visitorRepository,
             final AddressRepository addressRepository) {
@@ -51,7 +54,10 @@ public class VisitorService {
         }
         mapToEntity(visitorDTO, visitor);
         LOGGER.info("Visitor created with unq id: " + visitorDTO.getUnqId());
-        return visitorRepository.save(visitor).getId();
+        Long savedVisitorId = visitorRepository.save(visitor).getId();
+        //Redis Cache VISITOR*
+        redisCacheUtil.setValueInRedisWithDefaultTTL(VISITOR_REDIS_KEY + savedVisitorId, visitor);
+        return savedVisitorId;
     }
 
     public Long create(final PreApproveDTO preApproveDTO) {
