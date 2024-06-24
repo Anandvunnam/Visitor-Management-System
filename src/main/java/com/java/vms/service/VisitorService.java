@@ -23,7 +23,7 @@ public class VisitorService {
     private final VisitorRepository visitorRepository;
     private final AddressRepository addressRepository;
     private final Logger LOGGER = LoggerFactory.getLogger(VisitorService.class);
-    private final String VISITOR_REDIS_KEY = "VISITOR_";
+    final String VISITOR_REDIS_KEY = "VISITOR_";
     @Autowired
     private RedisCacheUtil redisCacheUtil;
 
@@ -62,7 +62,7 @@ public class VisitorService {
 
     public Long create(final PreApproveDTO preApproveDTO) {
         VisitorDTO visitorDTO = new VisitorDTO();
-        visitorDTO = mapPreApprovedDTOToVisitorDTO(preApproveDTO, visitorDTO);
+        mapPreApprovedDTOToVisitorDTO(preApproveDTO, visitorDTO);
         return create(visitorDTO);
     }
 
@@ -93,7 +93,7 @@ public class VisitorService {
         return visitorDTO;
     }
 
-    private Visitor mapToEntity(final VisitorDTO visitorDTO, final Visitor visitor) {
+    private void mapToEntity(final VisitorDTO visitorDTO, final Visitor visitor) {
         visitor.setName(visitorDTO.getName());
         visitor.setPhone(visitorDTO.getPhone());
         visitor.setUnqId(visitorDTO.getUnqId());
@@ -109,10 +109,9 @@ public class VisitorService {
             addressRepository.save(address);
             visitor.setAddress(address);
         }
-        return visitor;
     }
 
-    private VisitorDTO mapPreApprovedDTOToVisitorDTO(final PreApproveDTO preApproveDTO, VisitorDTO visitorDTO){
+    private void mapPreApprovedDTOToVisitorDTO(final PreApproveDTO preApproveDTO, VisitorDTO visitorDTO){
         visitorDTO.setName(preApproveDTO.getName());
         visitorDTO.setPhone(preApproveDTO.getPhone());
         visitorDTO.setUnqId(preApproveDTO.getUnqId());
@@ -122,7 +121,6 @@ public class VisitorService {
         visitorDTO.setState(preApproveDTO.getState());
         visitorDTO.setCountry(preApproveDTO.getCountry());
         visitorDTO.setPincode(preApproveDTO.getPincode());
-        return visitorDTO;
     }
 
     public boolean phoneExists(final String phone) {

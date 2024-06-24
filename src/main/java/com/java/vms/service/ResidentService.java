@@ -13,7 +13,6 @@ import com.java.vms.util.NotFoundException;
 import com.java.vms.util.RedisCacheUtil;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
-import org.apache.coyote.BadRequestException;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -25,21 +24,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class ResidentService {
 
+    final VisitRepository visitRepository;
+    final UserRepository userRepository;
+    final FlatRepository flatRepository;
+    final VisitorRepository visitorRepository;
+    final VisitService visitService;
+    final  VisitorService visitorService;
 
-    private final VisitRepository visitRepository;
-    private final UserRepository userRepository;
-    private final FlatRepository flatRepository;
-    private final VisitorRepository visitorRepository;
-
-    private final VisitService visitService;
-
-    private final  VisitorService visitorService;
-
-    private Logger LOGGER = LoggerFactory.getLogger(ResidentService.class);
-    private final String USER_REDIS_KEY = "USR_";
+    private final Logger LOGGER = LoggerFactory.getLogger(ResidentService.class);
+    final String USER_REDIS_KEY = "USR_";
 
     @Autowired
-    private RedisCacheUtil redisCacheUtil;
+    RedisCacheUtil redisCacheUtil;
 
     public ResidentService(final VisitRepository visitRepository, final UserRepository userRepository,
                            final FlatRepository flatRepository, final VisitorRepository visitorRepository,
@@ -76,9 +72,10 @@ public class ResidentService {
         preApprovedVisitDTO.setUserName(user.getName());
         preApprovedVisitDTO.setUserPhoneNumber(user.getPhone());
 
-        //Set visit-request status to preapproved
+        //Set visit-request status to pre-approved
         preApprovedVisitDTO.setVisitStatus(VisitStatus.PREAPPROVED);
         Long visitId = visitService.create(preApprovedVisitDTO);
+        //TODO: Handle errors from visitService
 
         //Long visitId = visitService.create(preApproveDTO, visitorId, userId);
         LOGGER.info("Pre-approved visit request created for visitor id: " + visitorId);

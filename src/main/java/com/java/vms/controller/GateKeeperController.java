@@ -3,7 +3,6 @@ package com.java.vms.controller;
 
 import com.java.vms.model.VisitDTO;
 import com.java.vms.model.VisitorDTO;
-import com.java.vms.service.UserService;
 import com.java.vms.service.VisitService;
 import com.java.vms.service.VisitorService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -52,9 +51,9 @@ public class GateKeeperController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/checkPreApprovedVisitReqs")
+    @GetMapping("/checkPreApprovedVisitRequests")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<Long> checkPreApprovedVisitReqs(@RequestParam @Valid final Long visitorId, @RequestParam @Valid final Long userId) throws BadRequestException {
+    public ResponseEntity<Long> checkPreApprovedVisitRequests(@RequestParam @Valid final Long visitorId, @RequestParam @Valid final Long userId) throws BadRequestException {
         return ResponseEntity.ok(visitService.anyPreApprovedExists(visitorId,userId));
     }
 

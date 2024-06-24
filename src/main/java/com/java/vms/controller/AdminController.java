@@ -80,8 +80,8 @@ public class AdminController {
     @GetMapping("/generate-visit-report")
     public ResponseEntity<byte[]> generateVisitReport(@RequestParam String fromDate,
                                                       @RequestParam String toDate) throws BadRequestException {
-        LocalDateTime lclFromDate = null;
-        LocalDateTime lclToDate = null;
+        LocalDateTime lclFromDate;
+        LocalDateTime lclToDate;
 
         try {
             lclFromDate = LocalDate.parse(fromDate).atStartOfDay();
@@ -100,8 +100,8 @@ public class AdminController {
 
     @GetMapping("/listAllVisits")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<List<VisitDTO>> getAllVisitReqs(@RequestParam(name = "pgSize") Integer pageSize,
-                                                          @RequestParam(name = "pgNum") Integer pageNumber){
+    public ResponseEntity<List<VisitDTO>> getAllVisitRequests(@RequestParam(name = "pgSize") Integer pageSize,
+                                                              @RequestParam(name = "pgNum") Integer pageNumber){
         Pageable pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
         return ResponseEntity.ok(visitService.findAll(pageable));
     }

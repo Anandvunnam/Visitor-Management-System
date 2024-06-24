@@ -1,6 +1,6 @@
 package com.java.vms.model;
 
-import jakarta.persistence.Column;
+
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;

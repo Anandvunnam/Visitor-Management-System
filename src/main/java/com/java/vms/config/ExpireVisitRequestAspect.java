@@ -25,7 +25,7 @@ public class ExpireVisitRequestAspect {
     @Autowired
     private TaskExecutor taskExecutor;
 
-    private Logger LOGGER = LoggerFactory.getLogger(ExpireVisitRequestAspect.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(ExpireVisitRequestAspect.class);
 
     @Transactional
     @Around("@annotation(com.java.vms.config.ExpireVisitRequest)")
@@ -41,7 +41,7 @@ public class ExpireVisitRequestAspect {
                 return;
             }
             else{
-                LOGGER.info("Visit Request with id: " + visitId + " will be expired in 10 mins.");
+                LOGGER.info("Visit Request with id: " + visitId + " will be expired in 10 minutes.");
             }
         } catch (Throwable e) {
             throw new RuntimeException(e);
@@ -55,7 +55,7 @@ public class ExpireVisitRequestAspect {
             }
             //after
             Visit delayedVisit = visitRepository.findById(visitId).orElse(null);
-            if(delayedVisit.getVisitStatus() == VisitStatus.PENDING){
+            if(delayedVisit != null && delayedVisit.getVisitStatus() == VisitStatus.PENDING){
                 delayedVisit.setVisitStatus(VisitStatus.EXPIRED);
                 LOGGER.info("Visit status EXPIRED for visit id: " + visitId);
                 visitRepository.save(delayedVisit);

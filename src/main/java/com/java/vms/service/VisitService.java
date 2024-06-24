@@ -8,7 +8,6 @@ import com.java.vms.domain.Visitor;
 import com.java.vms.model.PreApproveDTO;
 import com.java.vms.model.VisitDTO;
 import com.java.vms.model.VisitStatus;
-import com.java.vms.model.VisitorDTO;
 import com.java.vms.repos.FlatRepository;
 import com.java.vms.repos.UserRepository;
 import com.java.vms.repos.VisitRepository;
@@ -140,7 +139,7 @@ public class VisitService {
         final User user = visitDTO.getUserName() == null && visitDTO.getUserPhoneNumber() == null ?
                 null : userRepository.findUserByNameAndPhone(visitDTO.getUserName(), visitDTO.getUserPhoneNumber())
                 .orElseThrow(() -> new NotFoundException("user not found for resident: " + visitDTO.getUserName()));
-        Flat flat = null;
+        Flat flat;
         if(isVisitRequestPreApproved){
             flat = user.getFlat();
             if(flat == null){

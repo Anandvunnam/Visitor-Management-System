@@ -40,17 +40,17 @@ public class ResidentController {
 
     @GetMapping("/listAllVisitReqs")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<List<VisitDTO>> getAllVisitReqsByStatus(@RequestParam(name = "status") String status,
-                                                                  @RequestParam(name = "name") String userName,
-                                                                  @RequestParam(name = "phone") Long phone) throws BadRequestException{
+    public ResponseEntity<List<VisitDTO>> getAllVisitRequestsByStatus(@RequestParam(name = "status") String status,
+                                                                      @RequestParam(name = "name") String userName,
+                                                                      @RequestParam(name = "phone") Long phone) throws BadRequestException{
         return ResponseEntity.ok().body(visitService.listAllVisitReqsByStatus(status, userName, phone, true));
     }
 
-    @PostMapping("/preApproveVisitReq")
+    @PostMapping("/preApproveVisitRequest")
     @ApiResponse(responseCode = "201")
     @SneakyThrows
-    public ResponseEntity<Void> preApproveVisitReq(@RequestBody @Valid PreApproveDTO preApproveDTO,
-                                                   @RequestParam(name = "userId") @Valid Long userId){
+    public ResponseEntity<Void> preApproveVisitRequest(@RequestBody @Valid PreApproveDTO preApproveDTO,
+                                                       @RequestParam(name = "userId") @Valid Long userId){
         residentService.createPreApprovedVisitReq(preApproveDTO, userId);
         return ResponseEntity.ok().build();
     }
