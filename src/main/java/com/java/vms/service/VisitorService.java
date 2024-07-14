@@ -10,19 +10,17 @@ import com.java.vms.util.NotFoundException;
 import java.util.List;
 
 import com.java.vms.util.RedisCacheUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-
+@Slf4j
 @Service
 public class VisitorService {
 
     private final VisitorRepository visitorRepository;
     private final AddressRepository addressRepository;
-    private final Logger LOGGER = LoggerFactory.getLogger(VisitorService.class);
     final String VISITOR_REDIS_KEY = "VISITOR_";
     @Autowired
     private RedisCacheUtil redisCacheUtil;
@@ -49,11 +47,11 @@ public class VisitorService {
     public Long create(final VisitorDTO visitorDTO) {
         final Visitor visitor = new Visitor();
         if(unqIdExists(visitorDTO.getUnqId())){
-            LOGGER.info("Visitor already exists with unq ID: " + visitorDTO.getUnqId());
+            log.info("Visitor already exists with unq ID: {}", visitorDTO.getUnqId());
             return visitorRepository.findVisitorByUnqId(visitorDTO.getUnqId()).get().getId();
         }
         mapToEntity(visitorDTO, visitor);
-        LOGGER.info("Visitor created with unq id: " + visitorDTO.getUnqId());
+        log.info("Visitor created with unq id: {}", visitorDTO.getUnqId());
         Long savedVisitorId = visitorRepository.save(visitor).getId();
         //Redis Cache VISITOR*
         redisCacheUtil.setValueInRedisWithDefaultTTL(VISITOR_REDIS_KEY + savedVisitorId, visitor);
