@@ -32,20 +32,16 @@ public class UserDTO {
 
     private String line1;
 
-
     private String line2;
-
 
     private String city;
 
-
     private String state;
 
-
     private String country;
-
 
     private Integer pincode;
 
     private String flatNum;
+
 }

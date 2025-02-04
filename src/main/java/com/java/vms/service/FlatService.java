@@ -25,7 +25,6 @@ public class FlatService {
     private final Logger LOGGER = LoggerFactory.getLogger(FlatService.class);
 
     @Autowired
-    //private RedisTemplate<String, Object> template;
     private RedisCacheUtil redisCacheUtil;
 
     public FlatService(final FlatRepository flatRepository) {
@@ -108,4 +107,5 @@ public class FlatService {
         redisCacheUtil.setValueInRedisWithDefaultTTL(flatNum, flat);
         return flatRepository.save(flat).getFlatStatus();
     }
+
 }

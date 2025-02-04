@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/gt")
 public class GateKeeperController {
+
     @Autowired
     private VisitService visitService;
 
@@ -25,41 +26,58 @@ public class GateKeeperController {
 
     @PostMapping("/createVisitor")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createVisitor(@RequestBody @Valid final VisitorDTO visitorDTO) {
+    public ResponseEntity<Long> createVisitor
+            (@RequestBody @Valid final VisitorDTO visitorDTO)
+    {
         final Long createdId = visitorService.create(visitorDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
 
     @PostMapping("/createVisit")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createVisit(@RequestBody @Valid final VisitDTO visitDTO) throws BadRequestException {
+    public ResponseEntity<Long> createVisit
+            (@RequestBody @Valid final VisitDTO visitDTO)
+            throws BadRequestException
+    {
         final Long createdId = visitService.create(visitDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
 
     @PutMapping("/markEntry/{visitId}")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<Void> markEntry(@PathVariable @Valid final Long visitId) throws BadRequestException {
+    public ResponseEntity<Void> markEntry
+            (@PathVariable @Valid final Long visitId)
+            throws BadRequestException
+    {
         visitService.markVisitorEntry(visitId);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/markExit/{visitId}")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<Void> markExit(@PathVariable @Valid final Long visitId) throws BadRequestException {
+    public ResponseEntity<Void> markExit
+            (@PathVariable @Valid final Long visitId)
+            throws BadRequestException
+    {
         visitService.markVisitorExit(visitId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/checkPreApprovedVisitRequests")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<Long> checkPreApprovedVisitRequests(@RequestParam @Valid final Long visitorId, @RequestParam @Valid final Long userId) throws BadRequestException {
+    public ResponseEntity<Long> checkPreApprovedVisitRequests
+            (@RequestParam @Valid final Long visitorId,
+             @RequestParam @Valid final Long userId)
+            throws BadRequestException
+    {
         return ResponseEntity.ok(visitService.anyPreApprovedExists(visitorId,userId));
     }
 
     @PostMapping("/image-upload")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<String> uploadImage(@RequestParam("file")MultipartFile file){
+    public ResponseEntity<String> uploadImage
+            (@RequestParam("file")MultipartFile file)
+    {
         return ResponseEntity.ok(visitService.uploadVisitorImage(file));
     }
 

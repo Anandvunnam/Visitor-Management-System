@@ -11,9 +11,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlatDTO {
+
     @NotNull
     @Size(max = 255)
     private String flatNum;
 
     private FlatStatus flatStatus;
+
 }

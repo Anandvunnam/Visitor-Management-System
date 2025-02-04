@@ -26,31 +26,42 @@ public class ResidentController {
 
     @PutMapping("/approveReq/{id}")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<Void> approveReq(@PathVariable(name = "id") @Valid Long visitId) throws BadRequestException {
+    public ResponseEntity<Void> approveReq
+            (@PathVariable(name = "id") @Valid Long visitId)
+            throws BadRequestException
+    {
         visitService.approveVisitReq(visitId);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/rejectReq/{id}")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<Void> rejectReq(@PathVariable(name = "id") @Valid Long visitId) throws BadRequestException {
+    public ResponseEntity<Void> rejectReq
+            (@PathVariable(name = "id") @Valid Long visitId)
+            throws BadRequestException
+    {
         visitService.rejectVisitReq(visitId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/listAllVisitReqs")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<List<VisitDTO>> getAllVisitRequestsByStatus(@RequestParam(name = "status") String status,
-                                                                      @RequestParam(name = "name") String userName,
-                                                                      @RequestParam(name = "phone") Long phone) throws BadRequestException{
+    public ResponseEntity<List<VisitDTO>> getAllVisitRequestsByStatus
+            (@RequestParam(name = "status") String status,
+             @RequestParam(name = "name") String userName,
+             @RequestParam(name = "phone") Long phone)
+            throws BadRequestException
+    {
         return ResponseEntity.ok().body(visitService.listAllVisitReqsByStatus(status, userName, phone, true));
     }
 
     @PostMapping("/preApproveVisitRequest")
     @ApiResponse(responseCode = "201")
     @SneakyThrows
-    public ResponseEntity<Void> preApproveVisitRequest(@RequestBody @Valid PreApproveDTO preApproveDTO,
-                                                       @RequestParam(name = "userId") @Valid Long userId){
+    public ResponseEntity<Void> preApproveVisitRequest
+            (@RequestBody @Valid PreApproveDTO preApproveDTO,
+             @RequestParam(name = "userId") @Valid Long userId)
+    {
         residentService.createPreApprovedVisitReq(preApproveDTO, userId);
         return ResponseEntity.ok().build();
     }

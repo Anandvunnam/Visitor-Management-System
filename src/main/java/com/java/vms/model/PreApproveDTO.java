@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PreApproveDTO {
+
     @NotNull
     @Size(max = 255)
     private String name;
@@ -47,4 +48,5 @@ public class PreApproveDTO {
 
     @NotNull
     private Integer numOfGuests;
+
 }

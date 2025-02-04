@@ -21,7 +21,9 @@ import org.springframework.web.server.ResponseStatusException;
 public class RestExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(final NotFoundException exception) {
+    public ResponseEntity<ErrorResponse> handleNotFound
+            (final NotFoundException exception)
+    {
         final ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setHttpStatus(HttpStatus.NOT_FOUND.value());
         errorResponse.setException(exception.getClass().getSimpleName());
@@ -30,7 +32,9 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequest(final BadRequestException exception) {
+    public ResponseEntity<ErrorResponse> handleBadRequest
+            (final BadRequestException exception)
+    {
         final ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setHttpStatus(HttpStatus.BAD_REQUEST.value());
         errorResponse.setException(exception.getClass().getSimpleName());
@@ -39,8 +43,9 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(
-            final MethodArgumentNotValidException exception) {
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid
+            (final MethodArgumentNotValidException exception)
+    {
         final BindingResult bindingResult = exception.getBindingResult();
         final List<FieldError> fieldErrors = bindingResult.getFieldErrors()
                 .stream()
@@ -59,8 +64,9 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> handleResponseStatus(
-            final ResponseStatusException exception) {
+    public ResponseEntity<ErrorResponse> handleResponseStatus
+            (final ResponseStatusException exception)
+    {
         final ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setHttpStatus(exception.getStatusCode().value());
         errorResponse.setException(exception.getClass().getSimpleName());
@@ -70,8 +76,10 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(Throwable.class)
     @ApiResponse(responseCode = "4xx/5xx", description = "Error")
-    public ResponseEntity<ErrorResponse> handleThrowable(final Throwable exception) {
-        exception.printStackTrace();
+    public ResponseEntity<ErrorResponse> handleThrowable
+            (final Throwable exception)
+    {
+        //exception.printStackTrace();
         final ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.setException(exception.getClass().getSimpleName());

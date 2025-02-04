@@ -42,4 +42,5 @@ public class VisitorDTO {
 
     @NotNull
     private Integer pincode;
+
 }

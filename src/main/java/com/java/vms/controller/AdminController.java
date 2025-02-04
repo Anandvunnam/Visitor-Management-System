@@ -41,45 +41,63 @@ public class AdminController {
 
     @PostMapping("/user")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createUser(@RequestBody @Valid final UserDTO userDTO) throws SQLIntegrityConstraintViolationException {
+    public ResponseEntity<Long> createUser
+            (@RequestBody @Valid final UserDTO userDTO)
+            throws SQLIntegrityConstraintViolationException
+    {
         final Long createdId = userService.create(userDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
 
     @PutMapping("/changeUserStatus/{id}")
-    public ResponseEntity<Long> changeUserStatus(@PathVariable(name = "id") final Long id) {
+    public ResponseEntity<Long> changeUserStatus
+            (@PathVariable(name = "id") final Long id)
+    {
         userService.markUserStatus(id);
         return ResponseEntity.ok(id);
     }
 
     @PutMapping("/modifyUserDetails")
-    public ResponseEntity<Void> updateUser(@RequestBody @Valid final UserDTO userDTO) {
+    public ResponseEntity<Void> updateUser
+            (@RequestBody @Valid final UserDTO userDTO)
+    {
         userService.update(userDTO);
         return ResponseEntity.ok().build();
     }
+
     @PostMapping("/flat")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createFlat(@RequestBody @Valid final FlatDTO flatDTO) throws SQLIntegrityConstraintViolationException {
+    public ResponseEntity<Long> createFlat
+            (@RequestBody @Valid final FlatDTO flatDTO)
+            throws SQLIntegrityConstraintViolationException
+    {
         final Long createdId = flatService.create(flatDTO);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
 
     @PutMapping("/changeFlatStatus")
-    public ResponseEntity<FlatStatus> markFlatStatus(@RequestParam(name = "num") @Valid final String flatNum,
-                                                     @RequestParam(name = "st") @Valid final boolean status){
+    public ResponseEntity<FlatStatus> markFlatStatus
+            (@RequestParam(name = "num") @Valid final String flatNum,
+             @RequestParam(name = "st") @Valid final boolean status)
+    {
         FlatStatus flatStatus = flatService.changeFlatStatusToNotAvailable(flatNum, status);
         // TODO : 1. Need to change way of handling when only one rq param is received.
         return ResponseEntity.ok(flatStatus);
     }
 
     @PostMapping("/uploadUserData")
-    public ResponseEntity<List<String>> uploadUserData(@RequestParam MultipartFile file){
+    public ResponseEntity<List<String>> uploadUserData
+            (@RequestParam MultipartFile file)
+    {
         return ResponseEntity.ok(userService.createUsersFromFile(file));
     }
 
     @GetMapping("/generate-visit-report")
-    public ResponseEntity<byte[]> generateVisitReport(@RequestParam String fromDate,
-                                                      @RequestParam String toDate) throws BadRequestException {
+    public ResponseEntity<byte[]> generateVisitReport
+            (@RequestParam String fromDate,
+            @RequestParam String toDate)
+            throws BadRequestException
+    {
         LocalDateTime lclFromDate;
         LocalDateTime lclToDate;
 
@@ -100,8 +118,10 @@ public class AdminController {
 
     @GetMapping("/listAllVisits")
     @ApiResponse(responseCode = "200")
-    public ResponseEntity<List<VisitDTO>> getAllVisitRequests(@RequestParam(name = "pgSize") Integer pageSize,
-                                                              @RequestParam(name = "pgNum") Integer pageNumber){
+    public ResponseEntity<List<VisitDTO>> getAllVisitRequests
+            (@RequestParam(name = "pgSize") Integer pageSize,
+            @RequestParam(name = "pgNum") Integer pageNumber)
+    {
         Pageable pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
         return ResponseEntity.ok(visitService.findAll(pageable));
     }

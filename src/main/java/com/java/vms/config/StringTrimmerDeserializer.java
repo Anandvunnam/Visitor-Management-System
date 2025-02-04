@@ -13,7 +13,10 @@ public class StringTrimmerDeserializer extends JsonDeserializer<String> {
 
     @Override
     @SneakyThrows
-    public String deserialize(final JsonParser jsonParser, final DeserializationContext context) {
+    public String deserialize
+            (final JsonParser jsonParser,
+             final DeserializationContext context)
+    {
         String value = jsonParser.getValueAsString();
         if (value == null) {
             return null;

@@ -40,7 +40,6 @@ public class UserService {
     private final FlatRepository flatRepository;
 
     @Autowired
-    //private RedisTemplate<String, Object> template;
     private RedisCacheUtil redisCacheUtil;
 
     private final String USER_REDIS_KEY = "USR_";
@@ -214,4 +213,5 @@ public class UserService {
         }
         return response;
     }
+
 }

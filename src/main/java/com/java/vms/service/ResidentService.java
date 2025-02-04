@@ -37,9 +37,14 @@ public class ResidentService {
     @Autowired
     RedisCacheUtil redisCacheUtil;
 
-    public ResidentService(final VisitRepository visitRepository, final UserRepository userRepository,
-                           final FlatRepository flatRepository, final VisitorRepository visitorRepository,
-                           final VisitService visitService,final VisitorService visitorService) {
+    public ResidentService
+            (final VisitRepository visitRepository,
+             final UserRepository userRepository,
+             final FlatRepository flatRepository,
+             final VisitorRepository visitorRepository,
+             final VisitService visitService,
+             final VisitorService visitorService)
+    {
         this.visitRepository = visitRepository;
         this.userRepository = userRepository;
         this.flatRepository = flatRepository;
@@ -50,7 +55,10 @@ public class ResidentService {
 
     @SneakyThrows
     @Transactional
-    public void createPreApprovedVisitReq(final PreApproveDTO preApproveDTO, final Long userId){
+    public void createPreApprovedVisitReq
+            (final PreApproveDTO preApproveDTO,
+             final Long userId)
+    {
 
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -80,4 +88,5 @@ public class ResidentService {
         //Long visitId = visitService.create(preApproveDTO, visitorId, userId);
         LOGGER.info("Pre-approved visit request created for visitor id: " + visitorId);
     }
+
 }

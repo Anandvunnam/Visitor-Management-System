@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class RedisCacheUtil {
+
     private static final long DEFAULT_REDIS_TTL = 3600; // Default TTL for redis key - 1 hour
 
     @Autowired
@@ -20,4 +21,5 @@ public class RedisCacheUtil {
     public Object getValueFromRedisCache(String key){
         return redisTemplate.opsForValue().get(key);
     }
+    
 }

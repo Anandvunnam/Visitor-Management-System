@@ -47,18 +47,20 @@ public class VisitService {
     private final UserRepository userRepository;
     private final FlatRepository flatRepository;
     private final VisitorRepository visitorRepository;
-
-    private final Logger LOGGER = LoggerFactory.getLogger(VisitService.class);
-
     private final String VISITOR_REDIS_KEY = "VISITOR_";
     private final String USER_REDIS_KEY = "USR_";
     private final String VISIT_REDIS_KEY = "VISIT_";
+    private final Logger LOGGER = LoggerFactory.getLogger(VisitService.class);
 
     @Autowired
     private RedisCacheUtil redisCacheUtil;
 
-    public VisitService(final VisitRepository visitRepository, final UserRepository userRepository,
-            final FlatRepository flatRepository, final VisitorRepository visitorRepository) {
+    public VisitService
+            (final VisitRepository visitRepository,
+             final UserRepository userRepository,
+             final FlatRepository flatRepository,
+             final VisitorRepository visitorRepository)
+    {
         this.visitRepository = visitRepository;
         this.userRepository = userRepository;
         this.flatRepository = flatRepository;
@@ -94,7 +96,12 @@ public class VisitService {
     }
 
     @Transactional
-    public Long create(final PreApproveDTO preApproveDTO, final Long visitorId, final Long userId) throws BadRequestException {
+    public Long create
+            (final PreApproveDTO preApproveDTO,
+             final Long visitorId,
+             final Long userId)
+            throws BadRequestException
+    {
         Visit visit = new Visit();
         mapPreApprovedDTOToEntity(preApproveDTO, visit, visitorId, userId);
         LOGGER.info("Visit created for visitor with Id: " + visitorId);
@@ -110,7 +117,6 @@ public class VisitService {
         mapToEntity(visitDTO, visit);
         visitRepository.save(visit);
     }
-    
 
     private VisitDTO mapToDTO(final Visit visit, final VisitDTO visitDTO) {
         visitDTO.setId(visit.getId());
@@ -168,7 +174,12 @@ public class VisitService {
         visit.setVisitor(visitor);
     }
 
-    public void mapPreApprovedDTOToEntity(final PreApproveDTO preApproveDTO, Visit visit, Long visitorID, Long userId){
+    public void mapPreApprovedDTOToEntity
+            (final PreApproveDTO preApproveDTO,
+             Visit visit,
+             Long visitorID,
+             Long userId)
+    {
         //Redis Caching VISITOR_2
         Visitor visitor = (Visitor) redisCacheUtil.getValueFromRedisCache(VISITOR_REDIS_KEY + visitorID);
         if(visitor == null){
@@ -288,7 +299,13 @@ public class VisitService {
         visitRepository.save(visit);
     }
 
-    public List<VisitDTO> listAllVisitReqsByStatus(String status, String userName, Long userPhone, boolean isDurationEnabled) throws BadRequestException {
+    public List<VisitDTO> listAllVisitReqsByStatus
+            (String status,
+             String userName,
+             Long userPhone,
+             boolean isDurationEnabled)
+            throws BadRequestException
+    {
         final User user = userRepository.findUserByNameAndPhone(userName, userPhone)
                 .orElseThrow(() -> new BadRequestException("User not found  with given details."));
         VisitStatus vStatus = VisitStatus.APPROVED.name().equalsIgnoreCase(status)? VisitStatus.APPROVED : VisitStatus.REJECTED;
@@ -338,7 +355,11 @@ public class VisitService {
         return response;
     }
 
-    public byte[] getAllVisitReqsBetweenDates(LocalDateTime fromDate, LocalDateTime toDate) throws BadRequestException {
+    public byte[] getAllVisitReqsBetweenDates
+            (LocalDateTime fromDate,
+             LocalDateTime toDate)
+            throws BadRequestException
+    {
         if(fromDate.isAfter(toDate)){
             LOGGER.info("Invalid from and to dates: [" + fromDate.toLocalDate() + ", " + toDate.toLocalDate() + "]");
             throw new BadRequestException("Invalid from and to dates.");

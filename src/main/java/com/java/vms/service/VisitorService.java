@@ -24,11 +24,14 @@ public class VisitorService {
     private final AddressRepository addressRepository;
     private final Logger LOGGER = LoggerFactory.getLogger(VisitorService.class);
     final String VISITOR_REDIS_KEY = "VISITOR_";
+
     @Autowired
     private RedisCacheUtil redisCacheUtil;
 
-    public VisitorService(final VisitorRepository visitorRepository,
-            final AddressRepository addressRepository) {
+    public VisitorService
+            (final VisitorRepository visitorRepository,
+            final AddressRepository addressRepository)
+    {
         this.visitorRepository = visitorRepository;
         this.addressRepository = addressRepository;
     }
