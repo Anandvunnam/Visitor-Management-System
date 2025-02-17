@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-
+//TODO: SRP for both UserDTO and PreApproveDTO
 @Getter
 @Setter
 @Builder

@@ -14,13 +14,13 @@ import com.java.vms.util.RedisCacheUtil;
 import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class ResidentService {
 
@@ -30,8 +30,6 @@ public class ResidentService {
     final VisitorRepository visitorRepository;
     final VisitService visitService;
     final  VisitorService visitorService;
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ResidentService.class);
     final String USER_REDIS_KEY = "USR_";
 
     @Autowired
@@ -65,7 +63,7 @@ public class ResidentService {
 
         /* VISITOR model mapping from pre-approved DTO */
         Long visitorId = visitorService.create(modelMapper.map(preApproveDTO, VisitorDTO.class));
-        LOGGER.info("Visitor created with id: " + visitorId);
+        log.info("Visitor created with id: {}", visitorId);
 
         /* VISIT model mapping from pre-approved DTO*/
         VisitDTO preApprovedVisitDTO = modelMapper.map(preApproveDTO, VisitDTO.class);
@@ -86,7 +84,7 @@ public class ResidentService {
         //TODO: Handle errors from visitService
 
         //Long visitId = visitService.create(preApproveDTO, visitorId, userId);
-        LOGGER.info("Pre-approved visit request created for visitor id: " + visitorId);
+        log.info("Pre-approved visit request created for visitor id: {}", visitorId);
     }
 
 }

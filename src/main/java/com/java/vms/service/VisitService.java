@@ -29,17 +29,16 @@ import java.util.UUID;
 
 import com.java.vms.util.RedisCacheUtil;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.coyote.BadRequestException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-
+@Slf4j
 @Service
 public class VisitService {
 
@@ -47,10 +46,10 @@ public class VisitService {
     private final UserRepository userRepository;
     private final FlatRepository flatRepository;
     private final VisitorRepository visitorRepository;
+
     private final String VISITOR_REDIS_KEY = "VISITOR_";
     private final String USER_REDIS_KEY = "USR_";
     private final String VISIT_REDIS_KEY = "VISIT_";
-    private final Logger LOGGER = LoggerFactory.getLogger(VisitService.class);
 
     @Autowired
     private RedisCacheUtil redisCacheUtil;
@@ -88,13 +87,14 @@ public class VisitService {
     public Long create(final VisitDTO visitDTO) throws BadRequestException {
         Visit visit = new Visit();
         mapToEntity(visitDTO, visit);
-        LOGGER.info("Visit created for visitor with Id: " + visitDTO.getVisitor());
+        log.info("Visit created for visitor with Id: {}", visitDTO.getVisitor());
         Long visitId = visitRepository.save(visit).getId();
         //Redis Caching VISIT*
         redisCacheUtil.setValueInRedisWithDefaultTTL(VISIT_REDIS_KEY + visitId, visit);
         return visitId;
     }
 
+    /* Dead Code
     @Transactional
     public Long create
             (final PreApproveDTO preApproveDTO,
@@ -104,12 +104,13 @@ public class VisitService {
     {
         Visit visit = new Visit();
         mapPreApprovedDTOToEntity(preApproveDTO, visit, visitorId, userId);
-        LOGGER.info("Visit created for visitor with Id: " + visitorId);
+        log.info("Visit created for visitor with Id: " + visitorId);
         Long preApprovedVisitId = visitRepository.save(visit).getId();
         //Redis Caching PreApproved-VISIT*
         redisCacheUtil.setValueInRedisWithDefaultTTL(VISIT_REDIS_KEY + preApprovedVisitId, visit);
         return preApprovedVisitId;
     }
+    */
 
     public void update(final Long id, final VisitDTO visitDTO) throws BadRequestException {
         final Visit visit = visitRepository.findById(id)
@@ -230,11 +231,11 @@ public class VisitService {
         //TODO: Need to add check for inTime
         if(visit.getVisitStatus() == VisitStatus.PREAPPROVED || visit.getVisitStatus() == VisitStatus.APPROVED){
             visit.setInTime(LocalDateTime.now());
-            LOGGER.info("Marked entry for visitor with id: " + visit.getVisitor().getId());
+            log.info("Marked entry for visitor with id: {}", visit.getVisitor().getId());
             visitRepository.save(visit);
         }
         else if(visit.getVisitStatus() == VisitStatus.REJECTED){
-            LOGGER.warn("Visit request rejected for id: " + visit.getId());
+            log.warn("Visit request rejected for id: {}", visit.getId());
         }
         else{
             throw new BadRequestException("Visit request not yet approved.");
@@ -253,7 +254,7 @@ public class VisitService {
         if(visit.getInTime() != null && visit.getOutTime() == null){
             visit.setOutTime(LocalDateTime.now());
             visit.setVisitStatus(VisitStatus.COMPLETED);
-            LOGGER.info("Marked exit for visitor with id: " + visit.getVisitor().getId());
+            log.info("Marked exit for visitor with id: {}", visit.getVisitor().getId());
             visitRepository.save(visit);
         }
         else{
@@ -271,11 +272,11 @@ public class VisitService {
                     .orElseThrow(() -> new BadRequestException("No visit request found for id: " + visitId));
         }
         if(visit.getVisitStatus() != VisitStatus.PENDING){
-            LOGGER.info("Visit req with id " + visit.getId() + " is not pending");
+            log.info("Visit req with id {} is not pending", visit.getId());
             throw new BadRequestException("Visit req with id " + visit.getId() + " is not pending");
         }
         visit.setVisitStatus(VisitStatus.APPROVED);
-        LOGGER.info("Approved visit request with id: " + visit.getId());
+        log.info("Approved visit request with id: {}", visit.getId());
         //Cache the updated visit object
         redisCacheUtil.setValueInRedisWithDefaultTTL(VISIT_REDIS_KEY + visitId, visit);
         visitRepository.save(visit);
@@ -289,11 +290,11 @@ public class VisitService {
                     .orElseThrow(() -> new BadRequestException("No visit request found for id: " + visitId));
         }
         if(visit.getVisitStatus() != VisitStatus.PENDING){
-            LOGGER.info("Visit req with id " + visit.getId() + " is not pending");
+            log.info("Visit req with id {} is not pending", visit.getId());
             throw new BadRequestException("Visit req with id " + visit.getId() + " is not pending");
         }
         visit.setVisitStatus(VisitStatus.REJECTED);
-        LOGGER.info("Rejected visit request with id: " + visit.getId());
+        log.info("Rejected visit request with id: {}", visit.getId());
         //Cache the updated visit object
         redisCacheUtil.setValueInRedisWithDefaultTTL(VISIT_REDIS_KEY + visitId, visit);
         visitRepository.save(visit);
@@ -319,14 +320,14 @@ public class VisitService {
             if(isDurationEnabled){
                 Duration duration = Duration.between(LocalDateTime.now(), visit.getDateCreated()).abs();
                 if(duration.toDays() > 30L){
-                    LOGGER.info("Ignored visit request with id: " + visit.getId());
+                    log.info("Ignored visit request with id: {}", visit.getId());
                     continue;
                 }
             }
             visitDTO = new VisitDTO();
             visitDTOs.add(mapToDTO(visit, visitDTO));
         }
-        LOGGER.info("List of visits [" + visitDTOs.size() + "] found for user: " + userName + " with status: " + status);
+        log.info("List of visits [{}] found for user: {} with status: {}", visitDTOs.size(), userName, status);
         return visitDTOs;
     }
 
@@ -351,7 +352,7 @@ public class VisitService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to store visitor image");
         }
-        LOGGER.info("visitor-image uploaded successfully");
+        log.info("visitor-image uploaded successfully");
         return response;
     }
 
@@ -361,7 +362,7 @@ public class VisitService {
             throws BadRequestException
     {
         if(fromDate.isAfter(toDate)){
-            LOGGER.info("Invalid from and to dates: [" + fromDate.toLocalDate() + ", " + toDate.toLocalDate() + "]");
+            log.info("Invalid from and to dates: [{}, {}]", fromDate.toLocalDate(), toDate.toLocalDate());
             throw new BadRequestException("Invalid from and to dates.");
         }
         List<Visit> visits = visitRepository.findVisitsBetweenDates(OffsetDateTime.of(fromDate, ZoneOffset.UTC),
@@ -393,7 +394,7 @@ public class VisitService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        LOGGER.info("File: VisitReport_" + fromDate.toLocalDate() + "_" + toDate.toLocalDate() + ".csv generated successfully.");
+        log.info("File: VisitReport_{}_{}.csv generated successfully.", fromDate.toLocalDate(), toDate.toLocalDate());
         return response;
     }
 

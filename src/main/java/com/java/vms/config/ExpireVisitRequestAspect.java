@@ -4,11 +4,10 @@ import com.java.vms.domain.Visit;
 import com.java.vms.model.VisitStatus;
 import com.java.vms.repos.VisitRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
@@ -17,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 @Aspect
 @Component
+@Slf4j
 public class ExpireVisitRequestAspect {
 
     @Autowired
@@ -24,8 +24,6 @@ public class ExpireVisitRequestAspect {
 
     @Autowired
     private TaskExecutor taskExecutor;
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ExpireVisitRequestAspect.class);
 
     @Transactional
     @Around("@annotation(com.java.vms.config.ExpireVisitRequest)")
@@ -37,11 +35,11 @@ public class ExpireVisitRequestAspect {
             visitId = (Long) joinPoint.proceed();
             Visit visit = visitRepository.findById(visitId).orElse(null);
             if (visit != null && visit.getVisitStatus() == VisitStatus.PREAPPROVED) {
-                LOGGER.info("Visit status is PRE-APPROVED for visit id: " + visitId + ", skipping expiration.");
+                log.info("Visit status is PRE-APPROVED for visit id: {}, skipping expiration.", visitId);
                 return;
             }
             else{
-                LOGGER.info("Visit Request with id: " + visitId + " will be expired in 10 minutes.");
+                log.info("Visit Request with id: {} will be expired in 10 minutes.", visitId);
             }
         } catch (Throwable e) {
             throw new RuntimeException(e);
@@ -57,11 +55,11 @@ public class ExpireVisitRequestAspect {
             Visit delayedVisit = visitRepository.findById(visitId).orElse(null);
             if(delayedVisit != null && delayedVisit.getVisitStatus() == VisitStatus.PENDING){
                 delayedVisit.setVisitStatus(VisitStatus.EXPIRED);
-                LOGGER.info("Visit status EXPIRED for visit id: " + visitId);
+                log.info("Visit status EXPIRED for visit id: {}", visitId);
                 visitRepository.save(delayedVisit);
             }
             else{
-                LOGGER.info("Visit status is not PENDING for visit id: " + visitId);
+                 log.info("Visit status is not PENDING for visit id: {}", visitId);
             }
         });
     }

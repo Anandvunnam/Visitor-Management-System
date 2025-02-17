@@ -21,11 +21,10 @@ import java.util.List;
 import com.java.vms.util.RedisCacheUtil;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -34,7 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-
+@Slf4j
 @Service
 public class UserService implements UserDetailsService {
 
@@ -49,8 +48,6 @@ public class UserService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     private final String USER_REDIS_KEY = "USR_";
-
-    private final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     public UserService(final UserRepository userRepository,
             final AddressRepository addressRepository, final FlatRepository flatRepository) {
@@ -86,7 +83,7 @@ public class UserService implements UserDetailsService {
         Long createdId = userRepository.save(user).getId();
         //Redis Caching USER*
         redisCacheUtil.setValueInRedisWithDefaultTTL(USER_REDIS_KEY + createdId, user);
-        LOGGER.info("New user created with id: " + createdId);
+        log.info("New user created with id: {}", createdId);
         return createdId;
     }
 
@@ -95,7 +92,7 @@ public class UserService implements UserDetailsService {
         final User user = userRepository.findUserByEmail(userDTO.getEmail())
                 .orElseThrow(() -> new NotFoundException("User not found for email: " + userDTO.getEmail()));
         mapToEntity(userDTO, user);
-        LOGGER.info("User " + user.getEmail() + " details updated.");
+        log.info("User {} details updated.", user.getEmail());
         // Redis Caching USR_4
         redisCacheUtil.setValueInRedisWithDefaultTTL(USER_REDIS_KEY + user.getId(), user);
         userRepository.save(user);
@@ -115,7 +112,7 @@ public class UserService implements UserDetailsService {
         }
         userRepository.save(user);
         redisCacheUtil.setValueInRedisWithDefaultTTL(USER_REDIS_KEY + id, user);
-        LOGGER.info("User status updated for id: " + user.getId());
+        log.info("User status updated for id: {}", user.getId());
     }
 
     private UserDTO mapToDTO(final User user, final UserDTO userDTO) {
@@ -183,7 +180,7 @@ public class UserService implements UserDetailsService {
     }
 
     public List<String> createUsersFromFile(MultipartFile file){
-        LOGGER.info("Uploaded File: " + file.getOriginalFilename());
+        log.info("Uploaded File: {}", file.getOriginalFilename());
         List<String> response = new ArrayList<>();
         try{
             BufferedReader fileReader = new BufferedReader(new InputStreamReader(file.getInputStream()));

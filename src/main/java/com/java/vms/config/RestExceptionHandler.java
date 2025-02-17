@@ -6,6 +6,7 @@ import com.java.vms.util.NotFoundException;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 
+@Slf4j
 @RestControllerAdvice(annotations = RestController.class)
 public class RestExceptionHandler {
 
@@ -80,6 +82,7 @@ public class RestExceptionHandler {
             (final Throwable exception)
     {
         //exception.printStackTrace();
+        log.error("Error: {}", exception.getMessage());
         final ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.setException(exception.getClass().getSimpleName());

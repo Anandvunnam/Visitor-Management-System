@@ -10,19 +10,16 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 
 import com.java.vms.util.RedisCacheUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-
+@Slf4j
 @Service
 public class FlatService {
 
     private final FlatRepository flatRepository;
-
-    private final Logger LOGGER = LoggerFactory.getLogger(FlatService.class);
 
     @Autowired
     private RedisCacheUtil redisCacheUtil;
@@ -51,7 +48,7 @@ public class FlatService {
         final Flat flat = new Flat();
         mapToEntity(flatDTO, flat);
         flat.setFlatStatus(FlatStatus.AVAILABLE);
-        LOGGER.info("FLAT created with num: " + flatDTO.getFlatNum());
+        log.info("FLAT created with num: {}", flatDTO.getFlatNum());
         //REDIS Caching for FLAT with flatNum
         Long createdFlatId = flatRepository.save(flat).getId();
         //template.opsForValue().set(flat.getFlatNum(), flat, 10, TimeUnit.MINUTES);
@@ -101,7 +98,7 @@ public class FlatService {
             flat.setFlatStatus(FlatStatus.AVAILABLE);
         else
             flat.setFlatStatus(FlatStatus.NOTAVAILABLE);
-        LOGGER.info("FLAT status changed for flat num: " + flatNum + " & LastUpdatedTimeStamp: " + flat.getLastUpdated());
+        log.info("FLAT status changed for flat num: {} & LastUpdatedTimeStamp: {}", flatNum, flat.getLastUpdated());
         //update redis cache with updated flat object
         //template.opsForValue().set(flatNum, flat);
         redisCacheUtil.setValueInRedisWithDefaultTTL(flatNum, flat);
