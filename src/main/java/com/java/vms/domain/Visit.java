@@ -1,5 +1,6 @@
 package com.java.vms.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.java.vms.model.VisitStatus;
 import jakarta.persistence.*;
 
@@ -52,6 +53,8 @@ public class Visit {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "visitor_id", nullable = false)
+    /* Ignore proxy metadata - To address the issue in serializing lazy hibernated proxy (Address) object */
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Visitor visitor;
 
     @CreatedDate

@@ -48,7 +48,7 @@ public class AdminApiTest {
                 .lastUpdated(OffsetDateTime.now()).build();
 
         user = new User(1L, "Anand", "test@yopmail.com",
-                9381026991L, UserStatus.ACTIVE, Role.ADMIN, address, null, OffsetDateTime.now(),OffsetDateTime.now());
+                9381026991L,"pass", UserStatus.ACTIVE, Role.ADMIN, address, null, OffsetDateTime.now(),OffsetDateTime.now());
 
         userDTO = UserDTO.builder().id(1L).name("Anand").email("test@yopmail.com").phone(9381026991L).role(Role.ADMIN)
                 .line1("Tulasi Nagar").line2("Lingampet Road").city("jagtial").state("Telangana").country("India")

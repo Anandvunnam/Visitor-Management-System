@@ -28,12 +28,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
@@ -41,6 +44,9 @@ public class UserService {
 
     @Autowired
     private RedisCacheUtil redisCacheUtil;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final String USER_REDIS_KEY = "USR_";
 
@@ -131,10 +137,13 @@ public class UserService {
         user.setName(userDTO.getName());
         user.setEmail(userDTO.getEmail());
         user.setPhone(userDTO.getPhone());
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 //      No need to set user status
         if(userDTO.getRole() != null) {
             user.setRole(userDTO.getRole());
         }
+
+        //TODO: If user role is resident address should be given, if admin creating the user then address can be ignored.
         if(userDTO.getLine1() != null || userDTO.getLine2() != null ||
             userDTO.getCity() != null || userDTO.getState() != null ||
             userDTO.getCountry() != null || userDTO.getPincode() != null) {
@@ -214,4 +223,9 @@ public class UserService {
         return response;
     }
 
+    @Override
+    public User loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findUserByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User with " + username + " not found"));
+    }
 }

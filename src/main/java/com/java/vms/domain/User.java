@@ -1,5 +1,9 @@
 package com.java.vms.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.java.vms.config.GrantedAuthoritySerializer;
 import com.java.vms.model.Role;
 import com.java.vms.model.UserStatus;
 import jakarta.persistence.Column;
@@ -14,7 +18,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import java.time.OffsetDateTime;
-import java.util.Objects;
+import java.util.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +27,8 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 
 @Entity
@@ -31,7 +37,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class User implements UserDetails {
 
     @Id
     @Column(nullable = false, updatable = false)
@@ -48,15 +55,19 @@ public class User {
     private Long phone;
 
     @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
 
     @Column(nullable = false, name = "\"role\"")
     @Enumerated(EnumType.STRING)
+    @JsonSerialize(using = GrantedAuthoritySerializer.class)
     private Role role;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "address_id", nullable = false)
+    @JoinColumn(name = "address_id")
     private Address address;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -82,8 +93,24 @@ public class User {
 
     @Override
     public int hashCode()
-
     {
         return Objects.hash(email, phone);
     }
+
+    @JsonIgnore // To ignore caching of authorities in Redis (also resolves Serialization issue)
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singleton(this.getRole());
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
 }

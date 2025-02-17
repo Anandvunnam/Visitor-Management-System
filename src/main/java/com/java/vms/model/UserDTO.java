@@ -26,6 +26,10 @@ public class UserDTO {
     @NotNull
     private Long phone;
 
+    @NotNull
+    @Size(max = 18)
+    private String password;
+
     private UserStatus userStatus;
 
     private Role role;
