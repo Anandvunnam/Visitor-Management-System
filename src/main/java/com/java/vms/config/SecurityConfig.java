@@ -29,10 +29,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
                     request
+                        .requestMatchers("/resident/register", "/gt/register").permitAll()
                         .requestMatchers("/admin/**").hasAuthority(Role.ADMIN.getAuthority())
                         .requestMatchers("/gt/**").hasAnyAuthority(Role.ADMIN.getAuthority(), Role.GATEKEEPER.getAuthority())
                         .requestMatchers("/resident/**").hasAnyAuthority(Role.ADMIN.getAuthority(), Role.RESIDENT.getAuthority())
-                        //.requestMatchers("/register").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());

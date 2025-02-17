@@ -1,8 +1,11 @@
 package com.java.vms.controller;
 
 
+import com.java.vms.model.Role;
+import com.java.vms.model.UserDTO;
 import com.java.vms.model.VisitDTO;
 import com.java.vms.model.VisitorDTO;
+import com.java.vms.service.UserService;
 import com.java.vms.service.VisitService;
 import com.java.vms.service.VisitorService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.sql.SQLIntegrityConstraintViolationException;
+
 @RestController
 @RequestMapping("/gt")
 public class GateKeeperController {
@@ -23,6 +28,9 @@ public class GateKeeperController {
 
     @Autowired
     private VisitorService visitorService;
+
+    @Autowired
+    private UserService userService;
 
     @PostMapping("/createVisitor")
     @ApiResponse(responseCode = "201")
@@ -79,6 +87,16 @@ public class GateKeeperController {
             (@RequestParam("file")MultipartFile file)
     {
         return ResponseEntity.ok(visitService.uploadVisitorImage(file));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Void> registerUser
+            (@RequestBody @Valid UserDTO userDTO)
+            throws SQLIntegrityConstraintViolationException
+    {
+        userDTO.setRole(Role.GATEKEEPER);
+        Long userId = userService.create(userDTO);
+        return ResponseEntity.ok().build();
     }
 
 }

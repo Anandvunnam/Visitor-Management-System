@@ -73,7 +73,10 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public Long create(final @Valid UserDTO userDTO) throws SQLIntegrityConstraintViolationException {
+    public Long create
+            (final @Valid UserDTO userDTO)
+            throws SQLIntegrityConstraintViolationException
+    {
         if(emailExists(userDTO.getEmail()) || phoneExists(userDTO.getPhone())){
             throw new SQLIntegrityConstraintViolationException("Email/Phone already exists");
         }
