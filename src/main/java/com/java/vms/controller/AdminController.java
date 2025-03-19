@@ -16,6 +16,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,12 +43,14 @@ public class AdminController {
 
     @PostMapping("/user")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createUser
+    public ResponseEntity createUser
             (@RequestBody @Valid final UserDTO userDTO)
             throws SQLIntegrityConstraintViolationException
     {
         final Long createdId = userService.create(userDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", "/admin/user/"+String.valueOf(createdId));
+        return new ResponseEntity<>(createdId, headers, HttpStatus.CREATED);
     }
 
     @PutMapping("/changeUserStatus/{id}")
@@ -72,7 +76,9 @@ public class AdminController {
             throws SQLIntegrityConstraintViolationException
     {
         final Long createdId = flatService.create(flatDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", "/admin/flat/" + createdId);
+        return new ResponseEntity<>(createdId, headers, HttpStatus.CREATED);
     }
 
     @PutMapping("/changeFlatStatus")
@@ -109,7 +115,7 @@ public class AdminController {
         catch (DateTimeParseException e){
             throw new BadRequestException("Invalid to/from dates");
         }
-        byte[] response = visitService.getAllVisitReqsBetweenDates(lclFromDate, lclToDate);
+        byte[] response = visitService.getAllVisitRequestsBetweenDates(lclFromDate, lclToDate);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf("text/csv"));
         headers.setContentDispositionFormData("filename","VisitReport_" + fromDate +"_" + toDate + ".csv");

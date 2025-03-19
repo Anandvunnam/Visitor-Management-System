@@ -23,9 +23,10 @@ public class RedisConfig {
             (RedisConnectionFactory redisConnectionFactory)
     {
         RedisTemplate<String, Object> objectTemplate = new RedisTemplate<>();
-        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
+
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
+        //objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.findAndRegisterModules(); // Will automatically find and register modules which ever is needed.
         //objectMapper.registerModule(new Hibernate6Module());
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
@@ -35,7 +36,8 @@ public class RedisConfig {
                 BasicPolymorphicTypeValidator.builder().allowIfBaseType(Object.class).build(),
                 ObjectMapper.DefaultTyping.NON_FINAL
         );
-        serializer.setObjectMapper(objectMapper);
+        //serializer.setObjectMapper(objectMapper); //Deprecated
+        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
         objectTemplate.setConnectionFactory(redisConnectionFactory);
         objectTemplate.setKeySerializer(new StringRedisSerializer());
         objectTemplate.setValueSerializer(serializer);
