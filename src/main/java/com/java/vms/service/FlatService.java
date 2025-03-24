@@ -22,5 +22,5 @@ public interface FlatService {
 
     Flat update(FlatDTO flatDTO);
 
-    FlatStatus changeFlatStatusToNotAvailable(String flatNum, boolean status);
+    FlatStatus changeFlatStatus(String flatNum, boolean status);
 }

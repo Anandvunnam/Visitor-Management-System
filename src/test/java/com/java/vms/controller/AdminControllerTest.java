@@ -1,22 +1,26 @@
 package com.java.vms.controller;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.java.vms.config.TestSecurityConfig;
 import com.java.vms.model.*;
 import com.java.vms.service.FlatService;
 import com.java.vms.service.UserService;
+import java.sql.SQLIntegrityConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -25,16 +29,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.method.annotation.HandlerMethodValidationException;
-
-import java.sql.SQLIntegrityConstraintViolationException;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @ActiveProfiles("Test")
 @SpringBootTest(properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration")
@@ -133,15 +128,12 @@ public class AdminControllerTest {
 
     @Test
     public void testCreateUserWithoutContent() throws Exception {
-
-        given(userService.create(any(UserDTO.class)))
-                .willThrow(HandlerMethodValidationException.class);
-
-
         mockMvc.perform(post("/admin/user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.exception")
+                        .value(MethodArgumentNotValidException.class.getSimpleName()));
     }
 
     /*@Test
@@ -221,7 +213,7 @@ public class AdminControllerTest {
                         )
                         .andExpect(status().isOk());
 
-        verify(flatService, times(1)).changeFlatStatusToNotAvailable(flatNumCaptor.capture(), flatStatusBooleanCaptor.capture());
+        verify(flatService, times(1)).changeFlatStatus(flatNumCaptor.capture(), flatStatusBooleanCaptor.capture());
 
         assertThat(flat.getFlatNum()).isEqualTo(flatNumCaptor.getValue());
         assertThat(false).isEqualTo(flatStatusBooleanCaptor.getValue());
@@ -256,7 +248,7 @@ public class AdminControllerTest {
                 )
                 .andExpect(status().isOk());
 
-        verify(flatService, times(1)).changeFlatStatusToNotAvailable(flatNumCaptor.capture(), flatStatusBooleanCaptor.capture());
+        verify(flatService, times(1)).changeFlatStatus(flatNumCaptor.capture(), flatStatusBooleanCaptor.capture());
 
         assertThat(flat.getFlatNum()).isEqualTo(flatNumCaptor.getValue());
         assertThat(true).isEqualTo(flatStatusBooleanCaptor.getValue());

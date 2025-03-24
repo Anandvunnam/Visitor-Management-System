@@ -6,14 +6,11 @@ import com.java.vms.model.FlatStatus;
 import com.java.vms.repos.FlatRepository;
 import com.java.vms.service.FlatService;
 import com.java.vms.util.NotFoundException;
-
+import com.java.vms.util.RedisCacheUtil;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
-
-import com.java.vms.util.RedisCacheUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +81,7 @@ public class FlatServiceImpl implements FlatService {
         return flatRepository.existsByFlatNumIgnoreCase(flatNum);
     }
 
-    public FlatStatus changeFlatStatusToNotAvailable(String flatNum, boolean status) {
+    public FlatStatus changeFlatStatus(String flatNum, boolean status) {
         // Check for FLAT in Redis Cache first, if not found, then hit DB.
         //Flat flat = (Flat) template.opsForValue().get(flatNum);
         Flat flat = (Flat) redisCacheUtil.getValueFromRedisCache(flatNum);
