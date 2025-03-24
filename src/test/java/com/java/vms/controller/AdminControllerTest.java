@@ -51,6 +51,9 @@ public class AdminControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+
+    @Captor
+    ArgumentCaptor<UserDTO> userDTOArgumentCaptor;
     @Captor
     ArgumentCaptor<FlatDTO> flatDTOArgumentCaptor;
     @Captor
@@ -85,18 +88,6 @@ public class AdminControllerTest {
                 .build();
     }
 
-    /*@Test
-    public void testCreateUser() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonData = mapper.writeValueAsString(userDTO);
-        //Integer initialRelationSize = repository.findAll().size();
-        mockMvc.perform(post("/admin/user").contentType("application/json").content(jsonData)).
-                andDo(print()).andExpect(status().isCreated());
-        //Integer finalRelationSize = repository.findAll().size();
-        User actual = userRepository.findUserByEmail("test@yopmail.com").get();
-        assertThat(actual).isEqualTo(user);
-    } */
-
     @Test
     public void testCreateUser() throws Exception {
 
@@ -109,7 +100,9 @@ public class AdminControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"));
 
-        verify(userService, times(1)).create(any(UserDTO.class));
+        verify(userService, times(1)).create(userDTOArgumentCaptor.capture());
+
+        assertThat(userDTOArgumentCaptor.getValue()).usingRecursiveComparison().isEqualTo(userDTO);
     }
 
     @Test
@@ -118,35 +111,27 @@ public class AdminControllerTest {
         given(userService.create(any(UserDTO.class)))
                 .willThrow(SQLIntegrityConstraintViolationException.class);
 
-            mockMvc.perform(post("/admin/user")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(userDTO)))
-                    .andExpect(status().is5xxServerError());
+        mockMvc.perform(post("/admin/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDTO)))
+                .andExpect(status().isBadRequest());
 
-        verify(userService, times(1)).create(any(UserDTO.class));
+        verify(userService, times(1)).create(userDTOArgumentCaptor.capture());
+
+        assertThat(userDTOArgumentCaptor.getValue()).usingRecursiveComparison().isEqualTo(userDTO);
     }
 
     @Test
     public void testCreateUserWithoutContent() throws Exception {
         mockMvc.perform(post("/admin/user")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.exception")
-                        .value(MethodArgumentNotValidException.class.getSimpleName()));
-    }
+             .contentType(MediaType.APPLICATION_JSON)
+             .content("{}"))
+             .andExpect(status().isBadRequest())
+             .andExpect(jsonPath("$.exception")
+             .value(MethodArgumentNotValidException.class.getSimpleName()));
 
-    /*@Test
-    public void testAddFlat() throws Exception {
-        FlatDTO flatDTO = FlatDTO.builder().flatNum("T-101").build();
-        ObjectMapper mapper = new ObjectMapper();
-        String flatJsonData = mapper.writeValueAsString(flatDTO);
-        int initialSize = flatRepository.findAll().size();
-        mockMvc.perform(post("/admin/flat").contentType("application/json").content(flatJsonData))
-                .andDo(print()).andExpect(status().isCreated());
-        int finalSize =flatRepository.findAll().size();
-        assertThat(finalSize - initialSize).isEqualTo(1);
-    }*/
+        verify(userService, times(0)).create(any(UserDTO.class));
+    }
 
     @Test
     public void testAddFlat() throws Exception {
@@ -160,22 +145,10 @@ public class AdminControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"));
 
-        verify(flatService, times(1)).create(any(FlatDTO.class));
-    }
+        verify(flatService, times(1)).create(flatDTOArgumentCaptor.capture());
 
-    /* @Test
-    public void testAddFlatWithFlatStatus() throws Exception {
-        FlatDTO flatDTO = FlatDTO.builder().flatNum("T-101").flatStatus(FlatStatus.NOTAVAILABLE).build();
-        ObjectMapper mapper = new ObjectMapper();
-        String flatJsonData = mapper.writeValueAsString(flatDTO);
-        int initialSize = flatRepository.findAll().size();
-        MvcResult result = mockMvc.perform(post("/admin/flat").contentType("application/json").content(flatJsonData))
-                .andDo(print()).andExpect(status().isCreated()).andReturn();
-        int finalSize =flatRepository.findAll().size();
-        assertThat(finalSize - initialSize).isEqualTo(1);
-        Flat flat1 = flatRepository.findById(Long.valueOf(result.getResponse().getContentAsString())).get();
-        assertThat(flat1.getFlatStatus()).isEqualTo(FlatStatus.AVAILABLE);
-    } */
+        assertThat(flatDTOArgumentCaptor.getValue()).usingRecursiveComparison().isEqualTo(flat);
+    }
 
     @Test
     public void testAddFlatWithFlatStatus() throws Exception {
@@ -194,15 +167,6 @@ public class AdminControllerTest {
 
     }
 
-    /*@Test
-    public void testChangeFlatStatusToUnAvailable() throws Exception {
-        //flatRepository.save(flat);
-        MvcResult result = mockMvc.perform(put("/admin/changeFlatStatus").contentType("application/json")
-                        .param("num",flat.getFlatNum()).param("st",String.valueOf(false)))
-                .andDo(print()).andExpect(status().isOk()).andReturn();
-        assertThat(result.getResponse().getContentAsString().replace("\"","")).isEqualTo(FlatStatus.NOTAVAILABLE.toString());
-    }*/
-
     @Test
     public void testChangeFlatStatusToUnAvailable() throws Exception {
 
@@ -211,32 +175,13 @@ public class AdminControllerTest {
                         .param("num",flat.getFlatNum())
                         .param("st",String.valueOf(false))
                         )
-                        .andExpect(status().isOk());
+                        .andExpect(status().isNoContent());
 
         verify(flatService, times(1)).changeFlatStatus(flatNumCaptor.capture(), flatStatusBooleanCaptor.capture());
 
         assertThat(flat.getFlatNum()).isEqualTo(flatNumCaptor.getValue());
         assertThat(false).isEqualTo(flatStatusBooleanCaptor.getValue());
     }
-
-    /*@Test
-    public void testChangeFlatStatusToAvailable() throws Exception {
-        flat.setFlatStatus(FlatStatus.NOTAVAILABLE);
-//        flatRepository.save(flat);
-        MvcResult result = mockMvc.perform(
-                put("/admin/changeFlatStatus")
-                        .contentType("application/json")
-                        .param("num",flat.getFlatNum())
-                        .param("st",String.valueOf(true))
-                )
-                .andDo(print())
-                .andExpect(status().isOk()).andReturn();
-
-        assertThat(result.getResponse()
-                .getContentAsString()
-                .replace("\"",""))
-                .isEqualTo(FlatStatus.AVAILABLE.toString());
-    }*/
 
     @Test
     public void testChangeFlatStatusToAvailable() throws Exception {
@@ -246,7 +191,7 @@ public class AdminControllerTest {
                         .param("num",flat.getFlatNum())
                         .param("st",String.valueOf(true))
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(flatService, times(1)).changeFlatStatus(flatNumCaptor.capture(), flatStatusBooleanCaptor.capture());
 
