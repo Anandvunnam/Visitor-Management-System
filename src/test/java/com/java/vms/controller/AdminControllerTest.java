@@ -9,33 +9,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.java.vms.config.TestSecurityConfig;
 import com.java.vms.model.*;
 import com.java.vms.service.FlatService;
 import com.java.vms.service.UserService;
+import com.java.vms.service.VisitService;
 import java.sql.SQLIntegrityConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-@ActiveProfiles("Test")
-@SpringBootTest(properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration")
-@TestPropertySource(locations = ("classpath:application-test.properties"))
+@WebMvcTest(AdminController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(TestSecurityConfig.class)
 public class AdminControllerTest {
 
     private UserDTO userDTO;
@@ -45,6 +37,8 @@ public class AdminControllerTest {
     private UserService userService;
     @MockitoBean
     private FlatService flatService;
+    @MockitoBean
+    private VisitService visitService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -60,10 +54,6 @@ public class AdminControllerTest {
     ArgumentCaptor<String> flatNumCaptor;
     @Captor
     ArgumentCaptor<Boolean> flatStatusBooleanCaptor;
-
-    @MockitoBean
-    @Qualifier("testSecurityFilterChain")
-    private SecurityFilterChain securityFilterChain;
 
     @BeforeEach
     public void setUp(){
