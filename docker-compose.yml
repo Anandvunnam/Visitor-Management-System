@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8
+    container_name: vms_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USR: ${MYSQL_USR}
+      MYSQL_PWD: ${MYSQL_PWD}
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - vmsnetwork
+  redis:
+    image: redis:7
+    container_name: vms_redis
+    environment:
+      Redis_Host: redis
+      Redis_Port: 6379
+    ports:
+      - "6379:6379"
+    networks:
+      - vmsnetwork
+  vms-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vms-app
+    depends_on:
+      - mysql
+      - redis
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./visitor_imgs:/root/visitor_imgs
+    networks:
+      - vmsnetwork
+volumes:
+  mysql_data:
+networks:
+  vmsnetwork:
